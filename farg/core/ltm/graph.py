@@ -116,8 +116,9 @@ class LTMGraph(object):
 
         annFile = os.path.join(os.path.abspath(
             os.path.join(self.filename, os.pardir)), 'ltmIndex.ann')
+        self.annoyIndex.build(15)  # 15 trees
+        self.annoyIndex.save(annFile)
 
-        t.build(15)  # 15 trees
         with open(self.filename, "wb") as ltm_file:
             pickler = pickle.Pickler(ltm_file, 2)
             for node in self.nodes:

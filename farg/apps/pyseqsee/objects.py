@@ -1,10 +1,13 @@
 from functools import reduce
 
+import numpy as np
+
 from farg.apps.pyseqsee.categorization.categorizable import Categorizable
 from farg.apps.pyseqsee.focusable import PSFocusable
 from farg.apps.pyseqsee.relation import PSRelation
 from farg.apps.pyseqsee.utils import StructureToString
 from farg.core.history import History, EventType, ObjectType
+from farg.core.ltm.node import VECTOR_DIM
 from farg.core.ltm.storable import LTMNodeContent, LTMStorableMixin
 
 
@@ -17,7 +20,7 @@ class PlatonicObject(LTMNodeContent):
     we always get the same object back.
     """
 
-    def __init__(self, *, rep):
+    def __init__(self, *, rep, vector):
         assert (isinstance(rep, str))
         self.rep = rep
 
@@ -46,20 +49,13 @@ class PSObject(LTMStorableMixin, PSFocusable):
     TODO(amahabal): Also not present yet is the storage of relations.
     """
 
-<<<<<<< HEAD
-    def __init__(self):
+    def __init__(self, *, msg='', parents=[]):
         PSFocusable.__init__(self)
         self.relations = dict()
         self._span = None
-=======
-  def __init__(self, *, msg='', parents=[]):
-    PSFocusable.__init__(self)
-    self.relations = dict()
-    self._span = None
-    History.AddArtefact(self, ObjectType.WS_GROUP,
-                        "EltOrGp %s" % msg,
-                        parents)
->>>>>>> 9742d7a23d3789e8a9946b2c28bae5f56633675d
+        History.AddArtefact(self, ObjectType.WS_GROUP,
+                            "EltOrGp %s" % msg,
+                            parents)
 
     def Span(self):
         return self._span
@@ -93,19 +89,12 @@ class PSObject(LTMStorableMixin, PSFocusable):
 class PSElement(PSObject):
     """Represents a single element in the sequence."""
 
-<<<<<<< HEAD
-    def __init__(self, *, magnitude):
-        PSObject.__init__(self)
+    def __init__(self, *, magnitude, msg='', parents=[]):
+        PSObject.__init__(self, msg=msg, parents=parents)
         self.magnitude = magnitude
         from farg.apps.pyseqsee.categorization.numeric import CategoryInteger
         self.DescribeAs(CategoryInteger())
-=======
-  def __init__(self, *, magnitude, msg='', parents=[]):
-    PSObject.__init__(self, msg=msg, parents=parents)
-    self.magnitude = magnitude
-    from farg.apps.pyseqsee.categorization.numeric import CategoryInteger
-    self.DescribeAs(CategoryInteger())
->>>>>>> 9742d7a23d3789e8a9946b2c28bae5f56633675d
+        self.vector = np.random.uniform(-1.0, 1.0, VECTOR_DIM)
 
     def Structure(self):
         return self.magnitude
@@ -129,7 +118,6 @@ class PSElement(PSObject):
 
 
 class PSGroup(PSObject):
-<<<<<<< HEAD
     """Represents a group, including the degenerate case of singleton or empty group.
 
     TODO(amahabal): Not ported over the notion of underlying relations, yet. But
@@ -138,9 +126,10 @@ class PSGroup(PSObject):
     items.
     """
 
-    def __init__(self, *, items):
-        PSObject.__init__(self)
+    def __init__(self, *, items, msg='', parents=[]):
+        PSObject.__init__(self, msg=msg, parents=parents)
         self.items = items
+        self.vector = np.mean([item.vector for item in items], axis=0)
 
     def Structure(self):
         return tuple(x.Structure() for x in self.items)
@@ -200,75 +189,3 @@ class PSGroup(PSObject):
             return False
         self.SetSpanStart(deltas[0])
         return True
-=======
-  """Represents a group, including the degenerate case of singleton or empty group.
-
-  TODO(amahabal): Not ported over the notion of underlying relations, yet. But
-  maybe what I need is slightly different anyway, since a mountain cannot be
-  cleanly represented just by a single kind of underlying relationship among
-  items.
-  """
-
-  def __init__(self, *, items, msg='', parents=[]):
-    PSObject.__init__(self, msg=msg, parents=parents)
-    self.items = items
-
-  def Structure(self):
-    return tuple(x.Structure() for x in self.items)
-
-  def BriefLabel(self):
-    if self._span:
-      return 'Group %s@(%d, %d)' % (self.Structure(), self._span[0],
-                                    self._span[1])
-    return 'Group %s' % self.Structure()
-
-  def FlattenedMagnitudes(self):
-    return reduce(lambda x, y: x + y, (i.FlattenedMagnitudes()
-                                       for i in self.items))
-
-  def HypotheticallyAddComponentBefore(self, component):
-    new_gp = PSGroup(items=(component,) + tuple(self.items))
-    new_gp.InferSpans()
-    return new_gp
-
-  def HypotheticallyAddComponentAfter(self, component):
-    new_gp = PSGroup(items=tuple(self.items) + (component,))
-    new_gp.InferSpans()
-    return new_gp
-
-  def _CalculateSpanGivenStart(self, start):
-    spans = []
-    right_end = start - 1
-    for i in self.items:
-      spans.extend(i._CalculateSpanGivenStart(right_end + 1))
-      right_end = spans[-1][1][1]
-    spans.append((self, (start, right_end)))
-    return spans
-
-  def SetSpanStart(self, start):
-    projected_spans = self._CalculateSpanGivenStart(start)
-
-    # Let's check that these make sense...
-    for item, span in projected_spans:
-      if item._span:
-        assert (item._span == span)
-
-    # So all is good...
-    for item, span in projected_spans:
-      item._span = span
-
-  def InferSpans(self):
-    projected_relative_spans = self._CalculateSpanGivenStart(0)
-    # Let's calculate deltas.
-    deltas = []
-    for item, span in projected_relative_spans:
-      if item._span:
-        deltas.append(item._span[0] - span[0])
-        deltas.append(item._span[1] - span[1])
-    if not deltas:
-      return False
-    if any(x != deltas[0] for x in deltas[1:]):
-      return False
-    self.SetSpanStart(deltas[0])
-    return True
->>>>>>> 9742d7a23d3789e8a9946b2c28bae5f56633675d
