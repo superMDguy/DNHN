@@ -47,8 +47,8 @@ def get_file_mode(path):
 
 
 def insert_into_file(
-    file_path, marker, text,
-    marker_tag="-*-", keep_indent=True, keep_marker=True, encoding="UTF-8"):
+        file_path, marker, text,
+        marker_tag="-*-", keep_indent=True, keep_marker=True, encoding="UTF-8"):
     """Insert text into file at specific markers.
 
     eg, for a file "test.txt" with::
@@ -81,7 +81,7 @@ def insert_into_file(
     edited = False
     new_content = []
     with closing(
-        codecs.open(file_path, 'r', encoding=encoding)) as opened_file:
+            codecs.open(file_path, 'r', encoding=encoding)) as opened_file:
         for line in opened_file:
             match = marker_re.match(line)
             if match is None:
@@ -105,7 +105,7 @@ def insert_into_file(
         return
 
     with closing(
-        codecs.open(file_path, 'w', encoding=encoding)) as opened_file:
+            codecs.open(file_path, 'w', encoding=encoding)) as opened_file:
         for line in new_content:
             opened_file.write('%s%s' % (line, os.linesep,))
 

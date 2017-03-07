@@ -17,35 +17,38 @@ The coordinates (left, top) and (bottom, right) define a rectangular section of 
 This is an abstract class where a few methods need to be plugged in.
 """
 
-from abc import ABCMeta, abstractmethod  # Metaclass confuses pylint: disable=W0611
+# Metaclass confuses pylint: disable=W0611
+from abc import ABCMeta, abstractmethod
+
+
 class ViewPort(metaclass=ABCMeta):
-  """Viewport defines a section of a canvas for displaying some information."""
+    """Viewport defines a section of a canvas for displaying some information."""
 
-  def __init__(self, canvas, left, bottom, width, height):
-    """Defines section of a canvas for displaying the list.
+    def __init__(self, canvas, left, bottom, width, height):
+        """Defines section of a canvas for displaying the list.
 
-    Args:
-      canvas: Canvas where the view is drawn.
-      left:
-      bottom:
-      width:
-      height: Define the section of the canvas where view will be drawn.
-    """
-    self.left = left
-    self.bottom = bottom
-    self.height = height
-    self.width = width
-    self.canvas = canvas
+        Args:
+          canvas: Canvas where the view is drawn.
+          left:
+          bottom:
+          width:
+          height: Define the section of the canvas where view will be drawn.
+        """
+        self.left = left
+        self.bottom = bottom
+        self.height = height
+        self.width = width
+        self.canvas = canvas
 
-  def CanvasCoordinates(self, x, y):
-    """Converts coordinates in this view to canvas coordinates."""
-    return (self.left + x, self.bottom + y)
+    def CanvasCoordinates(self, x, y):
+        """Converts coordinates in this view to canvas coordinates."""
+        return (self.left + x, self.bottom + y)
 
-  @abstractmethod
-  def ReDraw(self, controller):
-    """Redraw this view.
+    @abstractmethod
+    def ReDraw(self, controller):
+        """Redraw this view.
 
-    Args:
-      controller: The controller for the main application.
-    """
-    pass
+        Args:
+          controller: The controller for the main application.
+        """
+        pass

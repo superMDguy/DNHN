@@ -18,41 +18,44 @@ from farg.apps.seqsee.exceptions import ConflictingGroupException, CannotReplace
 from farg.apps.seqsee.subspaces.deal_with_conflicting_groups import SubspaceDealWithConflictingGroups
 from farg.core.codelet import CodeletFamily
 from farg.core.history import History
+
+
 class CF_ActOnOverlappingGroups(CodeletFamily):
-  @classmethod
-  def Run(cls, controller, left, right, *, me):
-    if left not in controller.workspace.groups or right not in controller.workspace.groups:
-      # Groups gone, fizzle.
-      History.Note("CF_ActOnOverlappingGroups: left group now dead")
-      return
-    if set(left.items).intersection(set(right.items)):
-      # So overlap, and share elements.
-      left_underlying_set = left.object.underlying_mapping_set
-      right_underlying_set = right.object.underlying_mapping_set
-      # TODO(# --- Jan 28, 2012): Even if the following fails, there is reason to try and
-      # see how the two may be made to agree.
-      if left_underlying_set and left_underlying_set.intersection(right_underlying_set):
-        # This calls out for merging!
-        new_group_items = sorted(set(left.items).union(set(right.items)),
-                                 key=lambda x: x.start_pos)
-        logging.debug("New group items: %s",
-                      '; '.join(str(x) for x in new_group_items))
-        new_group = SAnchored.Create(
-            new_group_items,
-            underlying_mapping_set=left_underlying_set.intersection(right_underlying_set))
-        try:
-          controller.workspace.Replace((left, right), new_group)
-        except ConflictingGroupException as e:
-          SubspaceDealWithConflictingGroups(
-              controller,
-              workspace_arguments=dict(new_group=new_group,
-                                       incumbents=e.conflicting_groups),
-              parents=[me, left, right],
-              msg="Conflict when merging overlapping groups").Run()
-        except CannotReplaceSubgroupException as e:
-          SubspaceDealWithConflictingGroups(
-              controller,
-              workspace_arguments=dict(new_group=new_group,
-                                       incumbents=e.supergroups),
-              parents=[me, left, right],
-              msg="Cannot replace subgp when merging overlapping groups").Run()
+
+    @classmethod
+    def Run(cls, controller, left, right, *, me):
+        if left not in controller.workspace.groups or right not in controller.workspace.groups:
+            # Groups gone, fizzle.
+            History.Note("CF_ActOnOverlappingGroups: left group now dead")
+            return
+        if set(left.items).intersection(set(right.items)):
+            # So overlap, and share elements.
+            left_underlying_set = left.object.underlying_mapping_set
+            right_underlying_set = right.object.underlying_mapping_set
+            # TODO(# --- Jan 28, 2012): Even if the following fails, there is reason to try and
+            # see how the two may be made to agree.
+            if left_underlying_set and left_underlying_set.intersection(right_underlying_set):
+                # This calls out for merging!
+                new_group_items = sorted(set(left.items).union(set(right.items)),
+                                         key=lambda x: x.start_pos)
+                logging.debug("New group items: %s",
+                              '; '.join(str(x) for x in new_group_items))
+                new_group = SAnchored.Create(
+                    new_group_items,
+                    underlying_mapping_set=left_underlying_set.intersection(right_underlying_set))
+                try:
+                    controller.workspace.Replace((left, right), new_group)
+                except ConflictingGroupException as e:
+                    SubspaceDealWithConflictingGroups(
+                        controller,
+                        workspace_arguments=dict(new_group=new_group,
+                                                 incumbents=e.conflicting_groups),
+                        parents=[me, left, right],
+                        msg="Conflict when merging overlapping groups").Run()
+                except CannotReplaceSubgroupException as e:
+                    SubspaceDealWithConflictingGroups(
+                        controller,
+                        workspace_arguments=dict(new_group=new_group,
+                                                 incumbents=e.supergroups),
+                        parents=[me, left, right],
+                        msg="Cannot replace subgp when merging overlapping groups").Run()

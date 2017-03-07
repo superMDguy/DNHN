@@ -20,34 +20,37 @@ from farg.core.ui.gui.central_pane import CentralPane
 from farg.core.ui.gui.views.coderack_view import CoderackView
 from farg.core.ui.gui.views.ltm_view import LTMView
 from farg.core.ui.gui.views.stream_view import StreamView
+
+
 class SeqseeCentralPane(CentralPane):
-  default_initial_view = 'ws'
-  named_views = {
-      'ws': lambda pane: pane.SetFullView(WorkspaceView),
-      'cr': lambda pane: pane.SetFullView(CoderackView),
-      'ws_cr': lambda pane: pane.SetVerticallySplitView(WorkspaceView, CoderackView),
-      'cr_st':  lambda pane: pane.SetVerticallySplitView(CoderackView, StreamView),
-      'ws_cr_st':  lambda pane: pane.SetThreeWaySplit(WorkspaceView,
-                                                      CoderackView,
-                                                      StreamView),
-       'ws_ltm_st':  lambda pane: pane.SetThreeWaySplit(WorkspaceView,
-                                                       LTMView,
+    default_initial_view = 'ws'
+    named_views = {
+        'ws': lambda pane: pane.SetFullView(WorkspaceView),
+        'cr': lambda pane: pane.SetFullView(CoderackView),
+        'ws_cr': lambda pane: pane.SetVerticallySplitView(WorkspaceView, CoderackView),
+        'cr_st': lambda pane: pane.SetVerticallySplitView(CoderackView, StreamView),
+        'ws_cr_st': lambda pane: pane.SetThreeWaySplit(WorkspaceView,
+                                                       CoderackView,
                                                        StreamView),
-       'ws_gr_st':  lambda pane: pane.SetThreeWaySplit(WorkspaceView,
+        'ws_ltm_st': lambda pane: pane.SetThreeWaySplit(WorkspaceView,
+                                                        LTMView,
+                                                        StreamView),
+        'ws_gr_st': lambda pane: pane.SetThreeWaySplit(WorkspaceView,
                                                        GroupsView,
                                                        StreamView),
-       }
+    }
+
 
 class SeqseeGUI(GUI):
 
-  central_pane_class = SeqseeCentralPane
+    central_pane_class = SeqseeCentralPane
 
-  def __init__(self, *, controller_class, stopping_condition_fn=None):
-    GUI.__init__(self, controller_class=controller_class,
-                 stopping_condition_fn=stopping_condition_fn)
+    def __init__(self, *, controller_class, stopping_condition_fn=None):
+        GUI.__init__(self, controller_class=controller_class,
+                     stopping_condition_fn=stopping_condition_fn)
 
-    self.mw.title("Seqsee") #Sets the title of the window
+        self.mw.title("Seqsee")  # Sets the title of the window
 
-    # Key bindings
-    self.mw.bind('<KeyPress-d>', lambda e: self.controller.workspace.DebugRelations())
-
+        # Key bindings
+        self.mw.bind('<KeyPress-d>',
+                     lambda e: self.controller.workspace.DebugRelations())

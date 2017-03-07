@@ -13,11 +13,13 @@
 
 from farg.apps.seqsee.subspaces.choose_item_to_focus_on import SubspaceSelectObjectToFocusOn
 from farg.core.codelet import CodeletFamily
+
+
 class CF_ReadFromWS(CodeletFamily):
-  """Read an item from the WS and focus on it.
-  """
-  @classmethod
-  def Run(cls, controller, *, me):
-    choice = SubspaceSelectObjectToFocusOn(controller).Run()
-    if choice:
-      controller.stream.FocusOn(choice, parents=[me])
+    """Read an item from the WS and focus on it.
+    """
+    @classmethod
+    def Run(cls, controller, *, me):
+        choice = SubspaceSelectObjectToFocusOn(controller).Run()
+        if choice:
+            controller.stream.FocusOn(choice, parents=[me])

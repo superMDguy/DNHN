@@ -11,8 +11,9 @@
 # You should have received a copy of the GNU General Public License along with this
 # program.  If not, see <http://www.gnu.org/licenses/>
 
+
 class RunMode:
-  """A RunMode controlls how the app is run --- as GUI, in a batch mode, as a SxS, and so
-     forth.
-  """
-  pass
+    """A RunMode controlls how the app is run --- as GUI, in a batch mode, as a SxS, and so
+       forth.
+    """
+    pass

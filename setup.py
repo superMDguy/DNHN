@@ -1,5 +1,7 @@
 from setuptools import setup
-import os, sys
+import os
+import sys
+
 
 def fullsplit(path, result=None):
     """
@@ -23,20 +25,22 @@ farg_dir = 'farg'
 for dirpath, dirnames, filenames in os.walk(farg_dir):
     # Ignore dirnames that start with '.'
     for i, dirname in enumerate(dirnames):
-      # print('In %s, saw Dir: %s' % (dirpath, dirname))
-      if dirname.startswith('.') or dirname == '__pycache__':
-        del dirnames[i]
+        # print('In %s, saw Dir: %s' % (dirpath, dirname))
+        if dirname.startswith('.') or dirname == '__pycache__':
+            del dirnames[i]
     if '__init__.py' in filenames:
         packages.append('.'.join(fullsplit(dirpath)))
     elif filenames:
-        data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
+        data_files.append([dirpath, [os.path.join(dirpath, f)
+                                     for f in filenames]])
 for dirpath, dirnames, filenames in os.walk('data/pyseqsee_app_template'):
     # Ignore dirnames that start with '.'
     for i, dirname in enumerate(dirnames):
         if dirname.startswith('.') or dirname == '__pycache__':
-          del dirnames[i]
+            del dirnames[i]
     if filenames:
-        data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
+        data_files.append([dirpath, [os.path.join(dirpath, f)
+                                     for f in filenames]])
 # Small hack for working with bdist_wininst.
 # See http://mail.python.org/pipermail/distutils-sig/2004-August/004134.html
 if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
@@ -62,8 +66,8 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.1',
-   ],
-   entry_points={
+    ],
+    entry_points={
         'console_scripts': [
             'farg=farg.tools:main',
         ],

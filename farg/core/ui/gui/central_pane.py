@@ -26,172 +26,172 @@ import farg.flags as farg_flags
 
 
 class CentralPane(Canvas):  # Pylint thinks this has 9 ancestrors. pylint:disable=R0901,R0904
-  """The central area of the UI based display.
+    """The central area of the UI based display.
 
-  **ViewPorts** and **Views**
+    **ViewPorts** and **Views**
 
-  A Viewport is a small window through which to look at some aspects the
-  activity of the app.
-  Examples of viewports that come packaged with PySeqsee include
-  :py:class:`~farg.core.ui.gui.views.coderack_view.CoderackView`,
-  which displays the current codelets waiting to run. Other already supplied
-  views can be found in
-  the :py:mod:`~farg.core.ui.gui.views` module.
+    A Viewport is a small window through which to look at some aspects the
+    activity of the app.
+    Examples of viewports that come packaged with PySeqsee include
+    :py:class:`~farg.core.ui.gui.views.coderack_view.CoderackView`,
+    which displays the current codelets waiting to run. Other already supplied
+    views can be found in
+    the :py:mod:`~farg.core.ui.gui.views` module.
 
-  A View, on the other hand, is a tiling of a few such views into a display. A
-  View may consist of
-  just a single viewport, or two or more viewports. This class provides methods
-  to create views and
-  to maintain a set of named views.
+    A View, on the other hand, is a tiling of a few such views into a display. A
+    View may consist of
+    just a single viewport, or two or more viewports. This class provides methods
+    to create views and
+    to maintain a set of named views.
 
-  **Setting up views**
+    **Setting up views**
 
-  A view may be set up by calling one of the following methods of this class.
-  SetFullView, which
-  takes a viewport class as argument, creates a view with that single,
-  full-sized viewport. The
-  names SetVerticallySplitView and SetThreeWaySplit should be self-explanatory.
+    A view may be set up by calling one of the following methods of this class.
+    SetFullView, which
+    takes a viewport class as argument, creates a view with that single,
+    full-sized viewport. The
+    names SetVerticallySplitView and SetThreeWaySplit should be self-explanatory.
 
-  **Example Usage**
+    **Example Usage**
 
-  For an example of how a subclass may set up the views, take a look at the code
-  for
-  :py:class:`farg.apps.seqsee.gui.gui.SeqseeCentralPane`.
-  """
-
-  #: A dictionary from names to functions that sets views. A view is made up of a set of
-  #: viewports, each an instance of :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-  #: Methods are available in this class to create views (e.g., SetFullView and
-  #: SetVerticallySplitView). See farg.apps.seqsee.gui.gui.py for an example.
-  named_views = {}  # Not a constant. pylint: disable=C6409
-
-  #: Name of initial view.
-  default_initial_view = ''  # Not a constant. pylint: disable=C6409
-
-  def __init__(self, master, controller, *, height, width, background):
-    self.is_history_displayed = False
-    self.height = height
-    self.width = width
-    self.controller = controller
-    self.viewports = []
-    Canvas.__init__(
-        self, master, height=height, width=width, background=background)
-    self.SetupMenu(master)
-    self.SetNamedView(farg_flags.FargFlags.gui_initial_view or
-                      self.default_initial_view)
-    if farg_flags.FargFlags.history:
-      self.TurnOnHistoryGUI()
-
-  def ReDraw(self):
-    """Redraw all active views on pane."""
-    self.delete(ALL)
-    for viewport in self.viewports:
-      viewport.ReDraw(self.controller)
-    if self.is_history_displayed:
-      self.history_gui.Refresh()
-
-  def SetFullView(self, view_class):
-    """Set central pane to contain a single view.
-
-    Args:
-      view_class: A subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+    For an example of how a subclass may set up the views, take a look at the code
+    for
+    :py:class:`farg.apps.seqsee.gui.gui.SeqseeCentralPane`.
     """
-    self.viewports = [view_class(self, 0, 0, self.width, self.height)]
-    self.ReDraw()
 
-  def SetVerticallySplitView(self, view_class1, view_class2):
-    """Set central pane to contain a two view, one on top the other on the bottom.
+    #: A dictionary from names to functions that sets views. A view is made up of a set of
+    #: viewports, each an instance of :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+    #: Methods are available in this class to create views (e.g., SetFullView and
+    #: SetVerticallySplitView). See farg.apps.seqsee.gui.gui.py for an example.
+    named_views = {}  # Not a constant. pylint: disable=C6409
 
-    Args:
-      view_class1: A subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-      view_class2: Another subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-    """
-    self.viewports = [
-        view_class1(self, 0, 0, self.width, self.height / 2 - 2), view_class2(
-            self, 0, self.height / 2 + 2, self.width, self.height / 2 - 2)
-    ]
-    self.ReDraw()
+    #: Name of initial view.
+    default_initial_view = ''  # Not a constant. pylint: disable=C6409
 
-  def SetThreeWaySplit(self, view_class1, view_class2, view_class3):
-    """Set central pane to contain a three view, one on top and two on the bottom.
+    def __init__(self, master, controller, *, height, width, background):
+        self.is_history_displayed = False
+        self.height = height
+        self.width = width
+        self.controller = controller
+        self.viewports = []
+        Canvas.__init__(
+            self, master, height=height, width=width, background=background)
+        self.SetupMenu(master)
+        self.SetNamedView(farg_flags.FargFlags.gui_initial_view or
+                          self.default_initial_view)
+        if farg_flags.FargFlags.history:
+            self.TurnOnHistoryGUI()
 
-    Args:
-      view_class1: A subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-      view_class2: Another subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-      view_class3: Also a subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-    """
-    self.viewports = [
-        view_class1(self, 0, 0, self.width, self.height / 2 - 2), view_class2(
-            self, 0, self.height / 2 + 2,
-            self.width / 2 - 2, self.height / 2 - 2), view_class3(
-                self, self.width / 2 + 2, self.height / 2 + 2,
-                self.width / 2 - 2, self.height / 2 - 2)
-    ]
-    self.ReDraw()
+    def ReDraw(self):
+        """Redraw all active views on pane."""
+        self.delete(ALL)
+        for viewport in self.viewports:
+            viewport.ReDraw(self.controller)
+        if self.is_history_displayed:
+            self.history_gui.Refresh()
 
-  def SetFourWaySplit(self, view_class1, view_class2, view_class3, view_class4):
-    """Set central pane to contain a four view, two on top and two on the bottom.
+    def SetFullView(self, view_class):
+        """Set central pane to contain a single view.
 
-    Args:
-      view_class1: A subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-      view_class2: Another subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-      view_class3: Also a subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-      view_class4: Also a subclass of
-        :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
-    """
-    each_height = self.height / 2 - 2
-    each_width = self.width / 2 - 2
-    self.viewports = [
-        view_class1(self, 0, 0, each_width, each_height),  # Top left
-        view_class2(self, each_width + 4, 0, each_width,
-                    each_height),  # top right
-        view_class3(self, 0, each_height + 4, each_width, each_height),
-        view_class4(self, each_width + 4, each_height + 4, each_width,
-                    each_height)
-    ]
-    self.ReDraw()
+        Args:
+          view_class: A subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+        """
+        self.viewports = [view_class(self, 0, 0, self.width, self.height)]
+        self.ReDraw()
 
-  def SetNamedView(self, name):
-    """Set the named view by calling the function shored in named_views."""
-    if not name in self.named_views:
-      print('Unrecognized view %s' % name)
-      print('Available views: ', list(self.named_views.keys()))
-      sys.exit(1)
-    self.named_views[name](self)
+    def SetVerticallySplitView(self, view_class1, view_class2):
+        """Set central pane to contain a two view, one on top the other on the bottom.
 
-  def NamedViewCmd(self, name):
-    return (lambda: self.SetNamedView(name))
+        Args:
+          view_class1: A subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+          view_class2: Another subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+        """
+        self.viewports = [
+            view_class1(self, 0, 0, self.width, self.height / 2 - 2), view_class2(
+                self, 0, self.height / 2 + 2, self.width, self.height / 2 - 2)
+        ]
+        self.ReDraw()
 
-  def TurnOnHistoryGUI(self):
-    self.is_history_displayed = True
-    self.history_gui = HistoryGUI()
+    def SetThreeWaySplit(self, view_class1, view_class2, view_class3):
+        """Set central pane to contain a three view, one on top and two on the bottom.
 
-  def SetupMenu(self, parent):
-    """Create menu for the central pane."""
-    menubar = Menu(self)
+        Args:
+          view_class1: A subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+          view_class2: Another subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+          view_class3: Also a subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+        """
+        self.viewports = [
+            view_class1(self, 0, 0, self.width, self.height / 2 - 2), view_class2(
+                self, 0, self.height / 2 + 2,
+                self.width / 2 - 2, self.height / 2 - 2), view_class3(
+                    self, self.width / 2 + 2, self.height / 2 + 2,
+                    self.width / 2 - 2, self.height / 2 - 2)
+        ]
+        self.ReDraw()
 
-    view_menu = Menu(menubar, tearoff=0)
-    for name in self.named_views:
-      view_menu.add_command(label=name, command=self.NamedViewCmd(name))
-    view_menu.add_command(label='History', command=self.TurnOnHistoryGUI)
-    menubar.add_cascade(label='View', menu=view_menu)
+    def SetFourWaySplit(self, view_class1, view_class2, view_class3, view_class4):
+        """Set central pane to contain a four view, two on top and two on the bottom.
 
-    try:
-      debug_menu = Menu(menubar, tearoff=0)
-      debug_menu.add_command(
-          label='Debug Relations',
-          command=self.controller.workspace.DebugRelations)
-      menubar.add_cascade(label='Debug', menu=debug_menu)
-    except AttributeError:
-      pass
+        Args:
+          view_class1: A subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+          view_class2: Another subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+          view_class3: Also a subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+          view_class4: Also a subclass of
+            :py:class:`~farg.core.ui.gui.views.viewport.ViewPort`.
+        """
+        each_height = self.height / 2 - 2
+        each_width = self.width / 2 - 2
+        self.viewports = [
+            view_class1(self, 0, 0, each_width, each_height),  # Top left
+            view_class2(self, each_width + 4, 0, each_width,
+                        each_height),  # top right
+            view_class3(self, 0, each_height + 4, each_width, each_height),
+            view_class4(self, each_width + 4, each_height + 4, each_width,
+                        each_height)
+        ]
+        self.ReDraw()
 
-    parent.config(menu=menubar)
+    def SetNamedView(self, name):
+        """Set the named view by calling the function shored in named_views."""
+        if not name in self.named_views:
+            print('Unrecognized view %s' % name)
+            print('Available views: ', list(self.named_views.keys()))
+            sys.exit(1)
+        self.named_views[name](self)
+
+    def NamedViewCmd(self, name):
+        return (lambda: self.SetNamedView(name))
+
+    def TurnOnHistoryGUI(self):
+        self.is_history_displayed = True
+        self.history_gui = HistoryGUI()
+
+    def SetupMenu(self, parent):
+        """Create menu for the central pane."""
+        menubar = Menu(self)
+
+        view_menu = Menu(menubar, tearoff=0)
+        for name in self.named_views:
+            view_menu.add_command(label=name, command=self.NamedViewCmd(name))
+        view_menu.add_command(label='History', command=self.TurnOnHistoryGUI)
+        menubar.add_cascade(label='View', menu=view_menu)
+
+        try:
+            debug_menu = Menu(menubar, tearoff=0)
+            debug_menu.add_command(
+                label='Debug Relations',
+                command=self.controller.workspace.DebugRelations)
+            menubar.add_cascade(label='Debug', menu=debug_menu)
+        except AttributeError:
+            pass
+
+        parent.config(menu=menubar)

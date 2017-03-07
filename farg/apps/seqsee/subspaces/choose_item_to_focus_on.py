@@ -13,27 +13,29 @@
 
 from farg.core.subspace import QuickReconnResults, Subspace
 from farg.core.util import WeightedChoice
+
+
 def ThingsToChooseFrom(ws):
-  """Yields two-tuples of things to choose from, the second being weight."""
-  # QUALITY TODO(Feb 14, 2012): This should be a subspace. What do we choose from, what
-  # to pay attention to?
-  # QUALITY TODO(Feb 14, 2012): Explore role of relations.
-  for element in ws.elements:
-    yield (element, 20)
-  for gp in ws.groups:
-    yield (gp, gp.strength)
+    """Yields two-tuples of things to choose from, the second being weight."""
+    # QUALITY TODO(Feb 14, 2012): This should be a subspace. What do we choose from, what
+    # to pay attention to?
+    # QUALITY TODO(Feb 14, 2012): Explore role of relations.
+    for element in ws.elements:
+        yield (element, 20)
+    for gp in ws.groups:
+        yield (gp, gp.strength)
+
 
 class SubspaceSelectObjectToFocusOn(Subspace):
-  """Select object in workspace to focus on."""
+    """Select object in workspace to focus on."""
 
-  # This is a place-holder for a real space. For now, it has simply been upgraded from
-  # a codelet and all work is done by QuickReconn.
+    # This is a place-holder for a real space. For now, it has simply been upgraded from
+    # a codelet and all work is done by QuickReconn.
 
-
-  def QuickReconn(self):
-    parent_ws = self.parent_controller.workspace
-    choice = WeightedChoice(ThingsToChooseFrom(parent_ws))
-    if choice:
-      return QuickReconnResults.AnswerFound(choice)
-    else:
-      return QuickReconnResults.NoAnswerCanBeFound()
+    def QuickReconn(self):
+        parent_ws = self.parent_controller.workspace
+        choice = WeightedChoice(ThingsToChooseFrom(parent_ws))
+        if choice:
+            return QuickReconnResults.AnswerFound(choice)
+        else:
+            return QuickReconnResults.NoAnswerCanBeFound()

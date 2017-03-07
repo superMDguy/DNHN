@@ -26,195 +26,213 @@
 
 import logging
 
+import numpy as np
+
 from farg.core.categorization.categorizable import CategorizableMixin
 from farg.core.exceptions import FargError
 from farg.core.ltm.storable import LTMStorableMixin, LTMNodeContent
 from farg.core.util import Squash
+import farg.flags as farg_flags
 logger = logging.getLogger(__name__)
 
-class LTMStorableSObject(LTMNodeContent):
-  def __init__(self, *, structure):
-    self.structure = structure
 
-  def BriefLabel(self):
-    return 'Obj:%s' % str(self.structure)
+class LTMStorableSObject(LTMNodeContent):
+
+    def __init__(self, *, structure):
+        self.structure = structure
+
+    def BriefLabel(self):
+        return 'Obj:%s' % str(self.structure)
+
 
 class SObject(CategorizableMixin, LTMStorableMixin):
-  """Base class of objects --- groups or elements.
+    """Base class of objects --- groups or elements.
 
-     This is an abstract class. SGroup and SElement are concrete subclasses.
-  """
-  def __init__(self, is_group=False):
-    CategorizableMixin.__init__(self)
-    #: A number between 0 and 100.
-    self.strength = 0
-    #: Is this a group? Even SElements can occasionally act like groups.
-    self.is_group = is_group
-
-  @staticmethod
-  def Create(items):  # pylint: disable=W0142
-    """Creates an SObject given the items, which can be integers, lists, or other SObjects.
-       * An integer is converted to an SElement.
-       * Create([x, y, z]) is equivalent to Create(x, y, z)
-       * Create(x, y, z) forms an SGroup made up of Create(x), Create(y) and Create(z)
-       * Create(an Sobject) results in a DeepCopy of the SObject
+       This is an abstract class. SGroup and SElement are concrete subclasses.
     """
-    if not items:
-      raise FargError("Empty group creation attempted. An error at the moment")
-    if len(items) == 1:
-      item = items[0]
-      if isinstance(item, int):
-        return SElement(item)
-      elif isinstance(item, list):
-        return SObject.Create(item)
-      elif isinstance(item, tuple):
-        return SObject.Create(item)
-      elif isinstance(item, SObject):
-        return item.DeepCopy()
-      else:
-        raise FargError("Bad argument to Create: %s" % item.__repr__())
-    # So there are multiple items...
-    new_items = [SObject.Create([x]) for x in items]
-    return SGroup(items=new_items)
 
-  def GetLTMStorableContent(self):
-    # TODO(#24 --- Dec 28, 2011): Document (in LTM?) what GetStorable means.
-    structure = self.Structure()
-    return LTMStorableSObject(structure=structure)
+    def __init__(self, is_group=False):
+        CategorizableMixin.__init__(self)
+        #: A number between 0 and 100.
+        self.strength = 0
+        #: Is this a group? Even SElements can occasionally act like groups.
+        self.is_group = is_group
 
-  def Structure(self):  # pylint: disable=R0201
-    """Should be overridden by subclasses to return an int or tuple representing the
-       structure.
-    """
-    raise FargError("Structure should have been overridden.")
+    @staticmethod
+    def Create(items):  # pylint: disable=W0142
+        """Creates an SObject given the items, which can be integers, lists, or other SObjects.
+           * An integer is converted to an SElement.
+           * Create([x, y, z]) is equivalent to Create(x, y, z)
+           * Create(x, y, z) forms an SGroup made up of Create(x), Create(y) and Create(z)
+           * Create(an Sobject) results in a DeepCopy of the SObject
+        """
+        if not items:
+            raise FargError(
+                "Empty group creation attempted. An error at the moment")
+        if len(items) == 1:
+            item = items[0]
+            if isinstance(item, int):
+                return SElement(item)
+            elif isinstance(item, list):
+                return SObject.Create(item)
+            elif isinstance(item, tuple):
+                return SObject.Create(item)
+            elif isinstance(item, SObject):
+                return item.DeepCopy()
+            else:
+                raise FargError("Bad argument to Create: %s" % item.__repr__())
+        # So there are multiple items...
+        new_items = [SObject.Create([x]) for x in items]
+        return SGroup(items=new_items)
 
-  def GetFringeFromLTM(self, controller):
-    """Fringe for the element (now based off the LTM)."""
-    # TODO(# --- Dec 30, 2011): Need codelets to add LTM edges where they are missing.
-    my_node = controller.ltm.GetNode(content=self)
-    controller.SendActivation(content=self, amount=10)
-    fringe = dict()
-    fringe[my_node] = 1.0
-    outgoing_related_edges = my_node.GetOutgoingEdges()
-    for edge in outgoing_related_edges:
-      # TODO(# --- Dec 30, 2011): Edges should have strength, and it should influence this.
-      fringe[edge.to_node] = 0.8
-    return fringe
+    def GetLTMStorableContent(self):
+        # TODO(#24 --- Dec 28, 2011): Document (in LTM?) what GetStorable
+        # means.
+        structure = self.Structure()
+        return LTMStorableSObject(structure=structure)
+
+    def Structure(self):  # pylint: disable=R0201
+        """Should be overridden by subclasses to return an int or tuple representing the
+           structure.
+        """
+        raise FargError("Structure should have been overridden.")
+
+    def GetFringeFromLTM(self, controller):
+        """Fringe for the element (now based off the LTM)."""
+        # TODO(# --- Dec 30, 2011): Need codelets to add LTM edges where they
+        # are missing.
+        my_node = controller.ltm.GetNode(content=self)
+        controller.SendActivation(content=self, amount=10)
+        fringe = dict()
+        fringe[my_node] = 1.0
+        outgoing_related_edges = my_node.GetOutgoingEdges()
+        for edge in outgoing_related_edges:
+            # TODO(# --- Dec 30, 2011): Edges should have strength, and it
+            # should influence this.
+            fringe[edge.to_node] = 0.8
+        return fringe
 
 
 class SGroup(SObject):
-  """A subclass of SObject representing things with an internal structure."""
-  def __init__(self, underlying_mapping_set=None, items=None):
-    SObject.__init__(self, is_group=True)
-    #: Underlying mapping on which object is based.
-    if underlying_mapping_set:
-      self.underlying_mapping_set = underlying_mapping_set
-    else:
-      self.underlying_mapping_set = set()
-    #: Items in the object
-    if not items:
-      items = []
-    self.items = items
+    """A subclass of SObject representing things with an internal structure."""
 
-  def DeepCopy(self):
-    """Makes a copy of the group."""
-    # TODO(#25 --- Dec 28, 2011): Should copy categories, too. Perhaps a method in
-    # CategorizableMixin (CopyCategoriesFromCopy?). Also fix SElements below.
-    new_items = [x.DeepCopy() for x in self.items]
-    if self.underlying_mapping_set:
-      new_object = SGroup(items=new_items,
-                          underlying_mapping_set=set(self.underlying_mapping_set))
-    else:
-      new_object = SGroup(items=new_items)
-    new_object.AddCategoriesFrom(self)
-    return new_object
+    def __init__(self, underlying_mapping_set=None, items=None):
+        SObject.__init__(self, is_group=True)
+        #: Underlying mapping on which object is based.
+        if underlying_mapping_set:
+            self.underlying_mapping_set = underlying_mapping_set
+        else:
+            self.underlying_mapping_set = set()
+        #: Items in the object
+        if not items:
+            items = []
+        self.items = items
+        self.vector = np.array([item.vector for item in self.items])
 
-  def __str__(self):
-    return str(self.Structure())
+    def DeepCopy(self):
+        """Makes a copy of the group."""
+        # TODO(#25 --- Dec 28, 2011): Should copy categories, too. Perhaps a method in
+        # CategorizableMixin (CopyCategoriesFromCopy?). Also fix SElements
+        # below.
+        new_items = [x.DeepCopy() for x in self.items]
+        if self.underlying_mapping_set:
+            new_object = SGroup(items=new_items,
+                                underlying_mapping_set=set(self.underlying_mapping_set))
+        else:
+            new_object = SGroup(items=new_items)
+        new_object.AddCategoriesFrom(self)
+        return new_object
 
-  def Structure(self):
-    """A tuple representations of the group."""
-    return tuple(x.Structure() for x in self.items)
+    def __str__(self):
+        return str(self.Structure())
 
-  def GetFringe(self, controller):
-    """Fringe for the group."""
-    # TODO(#27 --- Dec 28, 2011): The categories are also a relevant part of the fringe.
-    fringe = dict()
-    if self.underlying_mapping_set:
-      for mapping in self.underlying_mapping_set:
-        fringe[mapping] = 1.0
-    for category, _bindings in self.categories.items():
-      # QUALITY TODO(Feb 10, 2012): Activation in the LTM matters.
-      fringe[category] = 0.8
-    fringe.update(self.GetFringeFromLTM(controller))
-    return fringe
+    def Structure(self):
+        """A tuple representations of the group."""
+        return tuple(x.Structure() for x in self.items)
 
-  def Length(self):
-    return sum(x.Length() for x in self.items)
+    def GetFringe(self, controller):
+        """Fringe for the group."""
+        # TODO(#27 --- Dec 28, 2011): The categories are also a relevant part
+        # of the fringe.
+        fringe = dict()
+        if self.underlying_mapping_set:
+            for mapping in self.underlying_mapping_set:
+                fringe[mapping] = 1.0
+        for category, _bindings in self.categories.items():
+            # QUALITY TODO(Feb 10, 2012): Activation in the LTM matters.
+            fringe[category] = 0.8
+        fringe.update(self.GetFringeFromLTM(controller))
+        return fringe
 
-  def FlattenedMagnitudes(self):
-    flattened = []
-    for part in self.items:
-      flattened.extend(part.FlattenedMagnitudes())
-    return flattened
+    def Length(self):
+        return sum(x.Length() for x in self.items)
 
-  def CalculateStrength(self, controller=None):
-    """The strength of a group is made up of a few components, including the strength of
-       its parts and the strength of the underlying_mapping_set.
-    """
-    strength = sum(x.CalculateStrength(controller) for x in self.items)
-    if controller and controller.ltm:
-      if self.underlying_mapping_set:
-        for mapping in self.underlying_mapping_set:
-          strength += 30 * controller.GetActivation(content=mapping)
-    return Squash(strength, 100)
+    def FlattenedMagnitudes(self):
+        flattened = []
+        for part in self.items:
+            flattened.extend(part.FlattenedMagnitudes())
+        return flattened
+
+    def CalculateStrength(self, controller=None):
+        """The strength of a group is made up of a few components, including the strength of
+           its parts and the strength of the underlying_mapping_set.
+        """
+        strength = sum(x.CalculateStrength(controller) for x in self.items)
+        if controller and controller.ltm:
+            if self.underlying_mapping_set:
+                for mapping in self.underlying_mapping_set:
+                    strength += 30 * controller.GetActivation(content=mapping)
+        return Squash(strength, 100)
+
 
 class SElement(SObject):
-  """A subclass of SObject, where there is a single element, which is a number."""
-  def __init__(self, magnitude):
-    SObject.__init__(self, is_group=False)
-    #: An integer representing the number help by the SElement.
-    self.magnitude = magnitude
-    # .. ToDO:: (handle strength, primality, etc).
-    # .. ToDo:: Copy categories as well.
-    self.underlying_mapping_set = None
-    from farg.apps.seqsee.categories import Number
-    self.DescribeAs(Number())
+    """A subclass of SObject, where there is a single element, which is a number."""
 
-  def BriefLabel(self):
-    return "SElement(%d)" % self.magnitude
+    def __init__(self, magnitude):
+        SObject.__init__(self, is_group=False)
+        #: An integer representing the number help by the SElement.
+        self.magnitude = magnitude
+        # .. ToDO:: (handle strength, primality, etc).
+        # .. ToDo:: Copy categories as well.
+        self.underlying_mapping_set = None
+        from farg.apps.seqsee.categories import Number
+        self.DescribeAs(Number())
+        self.vector = np.random.uniform(-1, 1, farg_falgs.FargFlags.dimensions)
 
-  def DeepCopy(self):
-    """Makes a copy."""
-    # .. ToDo:: The copying business is likely inadequate.
-    new_element = SElement(self.magnitude)
-    new_element.AddCategoriesFrom(self)
-    return new_element
+    def BriefLabel(self):
+        return "SElement(%d)" % self.magnitude
 
-  def Structure(self):
-    """The structure is the magnitude."""
-    return self.magnitude
+    def DeepCopy(self):
+        """Makes a copy."""
+        # .. ToDo:: The copying business is likely inadequate.
+        new_element = SElement(self.magnitude)
+        new_element.AddCategoriesFrom(self)
+        return new_element
 
-  def GetFringe(self, controller):
-    """Fringe for the element (now based off the LTM)."""
-    fringe = dict()
-    for category, _bindings in self.categories.items():
-      # QUALITY TODO(Feb 10, 2012): Activation in the LTM matters.
-      fringe[category] = 0.8
-    fringe.update(self.GetFringeFromLTM(controller))
-    return fringe
+    def Structure(self):
+        """The structure is the magnitude."""
+        return self.magnitude
 
-  def Length(self):
-    return 1
+    def GetFringe(self, controller):
+        """Fringe for the element (now based off the LTM)."""
+        fringe = dict()
+        for category, _bindings in self.categories.items():
+            # QUALITY TODO(Feb 10, 2012): Activation in the LTM matters.
+            fringe[category] = 0.8
+        fringe.update(self.GetFringeFromLTM(controller))
+        return fringe
 
-  def FlattenedMagnitudes(self):
-    return (self.magnitude,)
+    def Length(self):
+        return 1
 
-  def CalculateStrength(self, controller=None):
-    # QUALITY TODO(Feb 18, 2012): WHat should "strength" mean? Should elements that have been
-    # accounted for have a different strength?
-    return 16.8067226891 # i.e., Squash(20, 100)
+    def FlattenedMagnitudes(self):
+        return (self.magnitude,)
 
-  def __str__(self):
-    categories_string = '; '.join(str(x) for x in self.categories.keys())
-    return '%d (%s)' % (self.magnitude, categories_string)
+    def CalculateStrength(self, controller=None):
+        # QUALITY TODO(Feb 18, 2012): WHat should "strength" mean? Should elements that have been
+        # accounted for have a different strength?
+        return 16.8067226891  # i.e., Squash(20, 100)
+
+    def __str__(self):
+        categories_string = '; '.join(str(x) for x in self.categories.keys())
+        return '%d (%s)' % (self.magnitude, categories_string)

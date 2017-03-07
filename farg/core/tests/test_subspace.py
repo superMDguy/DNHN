@@ -6,38 +6,42 @@ from farg.apps.seqsee.sobject import SObject
 from farg.core.controller import Controller
 from farg.core.ltm.graph import LTMGraph
 from farg.core.ui.batch_ui import BatchUI
+
+
 class TestSubspace(unittest.TestCase):
-  def test_sanity(self):
-    # This test refers to things in the Seqsee app. Maybe the test should move there.
-    a3 = SObject.Create([11, 12, 13])
-    a4 = SObject.Create([11, 12, 13, 14])
-    a5 = SObject.Create([11, 12, 13, 14, 15])
 
-    a19_21 = SObject.Create([19, 20, 21])
+    def test_sanity(self):
+        # This test refers to things in the Seqsee app. Maybe the test should
+        # move there.
+        a3 = SObject.Create([11, 12, 13])
+        a4 = SObject.Create([11, 12, 13, 14])
+        a5 = SObject.Create([11, 12, 13, 14, 15])
 
-    _ui = BatchUI(controller_class=Controller)
-    controller = _ui.controller
-    controller.ltm = LTMGraph(empty_ok_for_test=True)
-    mapping = FindMapping(a3, a4, category=Ascending(), controller=controller,
-                          seqsee_ltm=controller.ltm)
-    self.assertTrue(isinstance(mapping, StructuralMapping))
-    self.assertEqual(Ascending(), mapping.category)
-    self.assertFalse(mapping.slippages)
+        a19_21 = SObject.Create([19, 20, 21])
 
-    mapping = FindMapping(a5, a19_21, category=Ascending(), controller=controller,
-                          seqsee_ltm=controller.ltm)
-    self.assertEqual(None, mapping)
+        _ui = BatchUI(controller_class=Controller)
+        controller = _ui.controller
+        controller.ltm = LTMGraph(empty_ok_for_test=True)
+        mapping = FindMapping(a3, a4, category=Ascending(), controller=controller,
+                              seqsee_ltm=controller.ltm)
+        self.assertTrue(isinstance(mapping, StructuralMapping))
+        self.assertEqual(Ascending(), mapping.category)
+        self.assertFalse(mapping.slippages)
 
-  def test_with_slippages(self):
-    a17_19 = SObject.Create([17, 18, 19])
-    a19_21 = SObject.Create([19, 20, 21])
+        mapping = FindMapping(a5, a19_21, category=Ascending(), controller=controller,
+                              seqsee_ltm=controller.ltm)
+        self.assertEqual(None, mapping)
 
-    _ui = BatchUI(controller_class=Controller)
-    controller = _ui.controller
-    controller.ltm = LTMGraph(empty_ok_for_test=True)
-    mapping = FindMapping(a17_19, a19_21, category=Ascending(), controller=controller,
-                          seqsee_ltm=controller.ltm)
-    self.assertTrue(isinstance(mapping, StructuralMapping))
-    self.assertEqual(Ascending(), mapping.category)
-    slippages_dict = dict(mapping.slippages)
-    self.assertEqual('end', slippages_dict['start'])
+    def test_with_slippages(self):
+        a17_19 = SObject.Create([17, 18, 19])
+        a19_21 = SObject.Create([19, 20, 21])
+
+        _ui = BatchUI(controller_class=Controller)
+        controller = _ui.controller
+        controller.ltm = LTMGraph(empty_ok_for_test=True)
+        mapping = FindMapping(a17_19, a19_21, category=Ascending(), controller=controller,
+                              seqsee_ltm=controller.ltm)
+        self.assertTrue(isinstance(mapping, StructuralMapping))
+        self.assertEqual(Ascending(), mapping.category)
+        slippages_dict = dict(mapping.slippages)
+        self.assertEqual('end', slippages_dict['start'])

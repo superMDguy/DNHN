@@ -17,39 +17,44 @@ from farg.core.controller import Controller
 from farg.core.ltm.graph import LTMGraph
 from farg.core.testing_utils import FringeAndCodeletsTest, CodeletPresenceSpec
 from farg.core.ui.batch_ui import BatchUI
+
+
 class MockSeqseeController(Controller):
-  def __init__(self, items=None):
-    Controller.__init__(self, ui=BatchUI(controller_class=Controller))
-    workspace = self.workspace = Workspace()
-    self.ltm = LTMGraph(empty_ok_for_test=True)
-    if items:
-      workspace.InsertElements(items)
+
+    def __init__(self, items=None):
+        Controller.__init__(self, ui=BatchUI(controller_class=Controller))
+        workspace = self.workspace = Workspace()
+        self.ltm = LTMGraph(empty_ok_for_test=True)
+        if items:
+            workspace.InsertElements(items)
 
 # Too many public methods because of unittest. pylint: disable=R0904
+
+
 class FringeOverlapTest(FringeAndCodeletsTest):
 
-  @staticmethod
-  def HelperCreateAndInsertGroup(workspace, specification, underlying_mapping_set=None):
-    """Utility for quickly creating groups.
+    @staticmethod
+    def HelperCreateAndInsertGroup(workspace, specification, underlying_mapping_set=None):
+        """Utility for quickly creating groups.
 
-       Each element in the specification is a tuple consisting of integers or of other
-       similarly structured tuples. Each generates a group, where the integers correspond to
-       position in the workspace.
+           Each element in the specification is a tuple consisting of integers or of other
+           similarly structured tuples. Each generates a group, where the integers correspond to
+           position in the workspace.
 
-       A degenerate case is when the specification is an integer, in which case the WS
-       element is returned.
-    """
-    if isinstance(specification, int):
-      return workspace.elements[specification]
-    else:
-      anchored_items = list(FringeOverlapTest.HelperCreateAndInsertGroup(workspace, x)
-                            for x in specification)
-      new_group = SAnchored.Create(anchored_items,
-                                   underlying_mapping_set=underlying_mapping_set)
-      return workspace.InsertGroup(new_group)
+           A degenerate case is when the specification is an integer, in which case the WS
+           element is returned.
+        """
+        if isinstance(specification, int):
+            return workspace.elements[specification]
+        else:
+            anchored_items = list(FringeOverlapTest.HelperCreateAndInsertGroup(workspace, x)
+                                  for x in specification)
+            new_group = SAnchored.Create(anchored_items,
+                                         underlying_mapping_set=underlying_mapping_set)
+            return workspace.InsertGroup(new_group)
 
-  @staticmethod
-  def SetupTestingWS(items):
-    workspace = Workspace()
-    workspace.InsertElements(items)
-    return workspace
+    @staticmethod
+    def SetupTestingWS(items):
+        workspace = Workspace()
+        workspace.InsertElements(items)
+        return workspace

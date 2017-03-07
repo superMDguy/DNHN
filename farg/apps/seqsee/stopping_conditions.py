@@ -12,9 +12,12 @@
 # program.  If not, see <http://www.gnu.org/licenses/>
 
 from farg.core.stopping_conditions import StoppingConditions, RegisterStoppingCondition
+
+
 class SeqseeStoppingConditions(StoppingConditions):
-  pass
+    pass
+
 
 @RegisterStoppingCondition(SeqseeStoppingConditions, condition_name="group_present")
 def CheckGroupPresence(controller):
-  return bool(controller.workspace.groups)
+    return bool(controller.workspace.groups)

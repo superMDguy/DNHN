@@ -20,64 +20,66 @@
 """
 from itertools import takewhile
 import traceback
+
+
 class FargError(Exception):
-  """Base class for untrappable errors (indicating bugs)."""
+    """Base class for untrappable errors (indicating bugs)."""
 
-  def __init__(self, msg=''):
-    Exception.__init__(self)
-    #: Message to be displayed.
-    self.msg = msg
-    self.stack_trace = list(takewhile((lambda x: x.find('FargError.__init__') == -1),
-                                      traceback.format_stack(limit=8)))
-    print('FargError: %s:%s' % (msg, self.stack_trace))
+    def __init__(self, msg=''):
+        Exception.__init__(self)
+        #: Message to be displayed.
+        self.msg = msg
+        self.stack_trace = list(takewhile((lambda x: x.find('FargError.__init__') == -1),
+                                          traceback.format_stack(limit=8)))
+        print('FargError: %s:%s' % (msg, self.stack_trace))
 
-  def __str__(self):
-    return 'FargError:' + self.msg + str(self.stack_trace)
+    def __str__(self):
+        return 'FargError:' + self.msg + str(self.stack_trace)
 
 
 class FargException(Exception):
-  """Base class for FARG-specific exceptions."""
-  pass
+    """Base class for FARG-specific exceptions."""
+    pass
 
 
 class BatchModeStopException(Exception):
-  """Base class of ways of stopping during batch mode.
+    """Base class of ways of stopping during batch mode.
 
-  Look at the subclasses (in this file) for details.
-  """
+    Look at the subclasses (in this file) for details.
+    """
 
-  def __init__(self, *, codelet_count):
-    Exception.__init__(self)
-    #: Number of codelets that had been run when the exception was raised.
-    self.codelet_count = codelet_count
+    def __init__(self, *, codelet_count):
+        Exception.__init__(self)
+        #: Number of codelets that had been run when the exception was raised.
+        self.codelet_count = codelet_count
 
 
 class StoppingConditionMet(BatchModeStopException):
-  """When a stopping condition is specified, this indicates that it has been reached."""
+    """When a stopping condition is specified, this indicates that it has been reached."""
 
-  def __str__(self):
-    return 'StoppingConditionMet after %d codelets' % self.codelet_count
+    def __str__(self):
+        return 'StoppingConditionMet after %d codelets' % self.codelet_count
 
 
 class SuccessfulCompletion(BatchModeStopException):
-  """Raised when the problem has been fully solved.
+    """Raised when the problem has been fully solved.
 
-  What fully solved means depends on the application, of course. For Seqsee, this means
-  currently means "Sequence has been extended to all known terms.".
-  """
-  pass
+    What fully solved means depends on the application, of course. For Seqsee, this means
+    currently means "Sequence has been extended to all known terms.".
+    """
+    pass
 
 
 class AnswerFoundException(BatchModeStopException):
-  """Raised by a subspace when it believes that an answer has been found."""
+    """Raised by a subspace when it believes that an answer has been found."""
 
-  def __init__(self, answer, *, codelet_count):
-    BatchModeStopException.__init__(self, codelet_count=codelet_count)
-    self.answer = answer
+    def __init__(self, answer, *, codelet_count):
+        BatchModeStopException.__init__(self, codelet_count=codelet_count)
+        self.answer = answer
 
 
 class NoAnswerException(BatchModeStopException):
-  """Raised by a subspace when it is realized that no answer is forthcoming."""
+    """Raised by a subspace when it is realized that no answer is forthcoming."""
 
-  def __init__(self, *, codelet_count):
-    BatchModeStopException.__init__(self, codelet_count=codelet_count)
+    def __init__(self, *, codelet_count):
+        BatchModeStopException.__init__(self, codelet_count=codelet_count)

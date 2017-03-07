@@ -38,7 +38,7 @@ class TemplateKeyError(KeyError, SkeletonError):
 
     def __str__(self):
         return ("Found unexpected variable %r in %r."
-            % (self.variable_name, self.file_path,))
+                % (self.variable_name, self.file_path,))
 
 
 class FileNameKeyError(KeyError, SkeletonError):
@@ -58,7 +58,7 @@ class FileNameKeyError(KeyError, SkeletonError):
 
     def __str__(self):
         return ("Found unexpected variable %r in file name %r"
-            % (self.variable_name, self.file_path))
+                % (self.variable_name, self.file_path))
 
 
 class ValidateError(SkeletonError):
@@ -72,6 +72,7 @@ def run_requirements_last(skel_method):
     The return wrapper will run the same method of the required
     skeleton instances after the wrapped method exists.
     """
+
     def wrapper(self, *args, **kw):
         """Method wrapper."""
         result = skel_method(self, *args, **kw)
@@ -89,6 +90,7 @@ def run_requirements_first(skel_method):
     The return wrapper will first run the same method of the required
     skeleton instances.
     """
+
     def wrapper(self, *args, **kw):
         """Method wrapper."""
         for skel in self.required_skeletons_instances:
@@ -173,7 +175,7 @@ class Skeleton(collections.MutableMapping):
             raise AttributeError(
                 "The src attribute of the %s Skeleton is not set" %
                 self.__class__.__name__
-                )
+            )
 
         mod = sys.modules[self.__class__.__module__]
         mod_dir = os.path.dirname(mod.__file__)
@@ -282,17 +284,17 @@ class Skeleton(collections.MutableMapping):
         for dir_path, dir_names, file_names in os.walk(real_src):
             rel_dir_path = dir_path[real_src_len:].lstrip(r'\/')
 
-            #copy files
+            # copy files
             for file_name in file_names:
                 src = os.path.join(dir_path, file_name)
                 dst = os.path.join(
                     dst_dir,
                     rel_dir_path,
                     self._format_file_name(file_name, dir_path)
-                    )
+                )
                 self._copy_file(src, dst)
 
-            #copy directories
+            # copy directories
             for dir_name in dir_names:
                 src = os.path.join(dir_path, dir_name)
                 dst = os.path.join(
@@ -330,7 +332,7 @@ class Skeleton(collections.MutableMapping):
         logging.basicConfig(
             level=options.verbose_,
             format="%(levelname)s - %(message)s"
-            )
+        )
 
         for var in skel.variables:
             value = getattr(options, var.name)
@@ -344,11 +346,11 @@ class Skeleton(collections.MutableMapping):
         """
         parser = optparse.OptionParser(usage="%prog [options] dst_dir")
         parser.add_option("-q", "--quiet",
-            action="store_const", const=logging.FATAL, dest="verbose_")
+                          action="store_const", const=logging.FATAL, dest="verbose_")
         parser.add_option("-v", "--verbose",
-            action="store_const", const=logging.INFO, dest="verbose_")
+                          action="store_const", const=logging.INFO, dest="verbose_")
         parser.add_option("-d", "--debug",
-            action="store_const", const=logging.DEBUG, dest="verbose_")
+                          action="store_const", const=logging.DEBUG, dest="verbose_")
         parser.set_default('verbose_', logging.ERROR)
 
         parser = vars_to_optparser(self.variables, parser=parser)
@@ -368,7 +370,7 @@ class Skeleton(collections.MutableMapping):
             raise FileNameKeyError(
                 exc.args[0],
                 os.path.join(dir_path, file_name)
-                )
+            )
 
     def _mkdir(self, path, like=None):
         """Create a directory (using os.mkdir)
@@ -500,7 +502,6 @@ class Var(object):
                 return self.validate(self._prompt(prompt_))
             except (ValidateError,) as exc:
                 print(str(exc))
-
 
     def validate(self, response):
         """Checks the user has given a non empty value or that the variable has

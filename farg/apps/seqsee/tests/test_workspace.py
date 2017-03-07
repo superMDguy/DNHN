@@ -8,190 +8,207 @@ from farg.apps.seqsee.mapping import NumericMapping, StructuralMapping
 from farg.apps.seqsee.sobject import SObject, SElement
 from farg.apps.seqsee.util import LessThan, LessThanEq, GreaterThan, GreaterThanEq, Exactly
 from farg.apps.seqsee.workspace import Workspace
+
+
 def helper_create_and_insert_group(ws, specification):
-  """Utility for quickly creating groups.
+    """Utility for quickly creating groups.
 
-  Each element in the specification is a tuple consisting of integers or of other similarly
-  structured tuples. Each generates a group, where the integers correspond to position in the
-  workspace.
+    Each element in the specification is a tuple consisting of integers or of other similarly
+    structured tuples. Each generates a group, where the integers correspond to position in the
+    workspace.
 
-  A degenerate case is when the specification is an integer, in which case the WS element is
-  returned.
-  """
-  if isinstance(specification, int):
-    return ws.elements[specification]
-  else:
-    anchored_items = list(helper_create_and_insert_group(ws, x) for x in specification)
-    new_group = SAnchored.Create(anchored_items)
-    ws.InsertGroup(new_group)
-    return new_group
+    A degenerate case is when the specification is an integer, in which case the WS element is
+    returned.
+    """
+    if isinstance(specification, int):
+        return ws.elements[specification]
+    else:
+        anchored_items = list(helper_create_and_insert_group(ws, x)
+                              for x in specification)
+        new_group = SAnchored.Create(anchored_items)
+        ws.InsertGroup(new_group)
+        return new_group
+
 
 def helper_create_and_insert_groups(ws, *specifications):
-  """Utility for quickly creating many groups."""
-  for specification in specifications:
-    helper_create_and_insert_group(ws, specification)
+    """Utility for quickly creating many groups."""
+    for specification in specifications:
+        helper_create_and_insert_group(ws, specification)
+
 
 def helper_create_group_given_spans_of_items(ws, *spans):
-  anchored_items = []
-  for span in spans:
-    if isinstance(span, int):
-      anchored_items.append(ws.elements[span])
-    else:
-      matching_groups = ws.GetGroupsWithSpan(Exactly(span[0]), Exactly(span[1]))
-      anchored_items.append(next(matching_groups))
-  return SAnchored.Create(anchored_items)
+    anchored_items = []
+    for span in spans:
+        if isinstance(span, int):
+            anchored_items.append(ws.elements[span])
+        else:
+            matching_groups = ws.GetGroupsWithSpan(
+                Exactly(span[0]), Exactly(span[1]))
+            anchored_items.append(next(matching_groups))
+    return SAnchored.Create(anchored_items)
+
 
 class TestWorkspace(unittest.TestCase):
-  def test_sanity(self):
-    ws = Workspace()
-    self.assertEqual(0, ws.num_elements)
 
-    ws.InsertElement(SObject.Create([5]))
-    self.assertEqual(1, ws.num_elements)
-    self.assertEqual(5, ws.elements[0].object.magnitude)
+    def test_sanity(self):
+        ws = Workspace()
+        self.assertEqual(0, ws.num_elements)
 
-    ws.InsertElements((6, 7))
-    self.assertEqual(6, ws.elements[1].object.magnitude)
-    self.assertEqual((1, 1), ws.elements[1].Span())
-    self.assertEqual(3, ws.num_elements)
+        ws.InsertElement(SObject.Create([5]))
+        self.assertEqual(1, ws.num_elements)
+        self.assertEqual(5, ws.elements[0].object.magnitude)
 
-  def test_insert_group(self):
-    ws = Workspace()
-    ws.InsertElements((5, 6))
-    gp = SAnchored.Create(ws.elements[:])
-    self.assertEqual((0, 1), gp.Span())
-    self.assertEqual((5, 6), gp.Structure())
+        ws.InsertElements((6, 7))
+        self.assertEqual(6, ws.elements[1].object.magnitude)
+        self.assertEqual((1, 1), ws.elements[1].Span())
+        self.assertEqual(3, ws.num_elements)
 
-    ws.InsertGroup(gp)
-    self.assertEqual(1, len(ws.groups))
+    def test_insert_group(self):
+        ws = Workspace()
+        ws.InsertElements((5, 6))
+        gp = SAnchored.Create(ws.elements[:])
+        self.assertEqual((0, 1), gp.Span())
+        self.assertEqual((5, 6), gp.Structure())
 
-  def test_conflicting_groups_simple(self):
-    ws = Workspace()
-    ws.InsertElements(range(0, 10))
-    helper_create_and_insert_groups(ws, (1, 2, 3), (4, 5, 6))
-    self.assertEqual(2, len(ws.groups))
+        ws.InsertGroup(gp)
+        self.assertEqual(1, len(ws.groups))
 
-    # An overlapping group which overlaps by more than one subgroup is a conflict:
-    self.assertTrue(
-        tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, 2, 3, 4))))
+    def test_conflicting_groups_simple(self):
+        ws = Workspace()
+        ws.InsertElements(range(0, 10))
+        helper_create_and_insert_groups(ws, (1, 2, 3), (4, 5, 6))
+        self.assertEqual(2, len(ws.groups))
 
-    # Subsumed that is not an element is problematic.
-    self.assertTrue(
-        tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, 2, 3))))
+        # An overlapping group which overlaps by more than one subgroup is a
+        # conflict:
+        self.assertTrue(
+            tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, 2, 3, 4))))
 
-    # But if subsumed *is* an element, that is okay.
-    self.assertFalse(
-        tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, 2))))
+        # Subsumed that is not an element is problematic.
+        self.assertTrue(
+            tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, 2, 3))))
 
-  def test_conflicting_groups_more_complex(self):
-    ws = Workspace()
-    ws.InsertElements(range(0, 10))
-    helper_create_and_insert_groups(ws, ((1, 2, 3), (4, 5, 6), (7, 8)))
-    self.assertEqual(4, len(ws.groups))
+        # But if subsumed *is* an element, that is okay.
+        self.assertFalse(
+            tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, 2))))
 
-    # An overlapping group not subsumed is fine:
-    self.assertFalse(
-        tuple(ws.GetConflictingGroups(
-                  helper_create_group_given_spans_of_items(ws, 0, (1, 3), 4))))
-    self.assertFalse(
-        tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, 0, (1, 3)))))
+    def test_conflicting_groups_more_complex(self):
+        ws = Workspace()
+        ws.InsertElements(range(0, 10))
+        helper_create_and_insert_groups(ws, ((1, 2, 3), (4, 5, 6), (7, 8)))
+        self.assertEqual(4, len(ws.groups))
 
-    # Subsumed that is not an element is problematic.
-    self.assertTrue(
-        tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(
-            ws, (1, 3), (4, 6)))))
+        # An overlapping group not subsumed is fine:
+        self.assertFalse(
+            tuple(ws.GetConflictingGroups(
+                helper_create_group_given_spans_of_items(ws, 0, (1, 3), 4))))
+        self.assertFalse(
+            tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, 0, (1, 3)))))
 
-    # But if subsumed *is* an element, that is okay.
-    # Here, the group being tested is an *existing* group.
-    self.assertFalse(
-        tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, (1, 3)))))
+        # Subsumed that is not an element is problematic.
+        self.assertTrue(
+            tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(
+                ws, (1, 3), (4, 6)))))
 
-    # If a new group is crafted out of existing parts, such that is aligns
-    # exactly with an existing group, it is not in conflict.
-    g1 = helper_create_group_given_spans_of_items(ws, 1, 2, 3)
-    self.assertFalse(tuple(ws.GetConflictingGroups(g1)))
+        # But if subsumed *is* an element, that is okay.
+        # Here, the group being tested is an *existing* group.
+        self.assertFalse(
+            tuple(ws.GetConflictingGroups(helper_create_group_given_spans_of_items(ws, (1, 3)))))
 
-  def test_supergroups(self):
-    ws = Workspace()
-    ws.InsertElements(range(0, 10))
-    helper_create_and_insert_groups(ws, ((1, 2, 3), (4, 5, 6), (7, 8)))
-    self.assertEqual(1, len(tuple(ws.GetSuperGroups(ws.elements[1]))))
-    g1 = helper_create_group_given_spans_of_items(ws, (1, 3))
-    self.assertEqual(1, len(tuple(ws.GetSuperGroups(g1))))
-    helper_create_and_insert_groups(ws, (3, 4))
-    g2 = helper_create_group_given_spans_of_items(ws, (3, 4))
-    self.assertEqual(0, len(tuple(ws.GetSuperGroups(g2))))
-    self.assertEqual(2, len(tuple(ws.GetSuperGroups(ws.elements[3]))))
+        # If a new group is crafted out of existing parts, such that is aligns
+        # exactly with an existing group, it is not in conflict.
+        g1 = helper_create_group_given_spans_of_items(ws, 1, 2, 3)
+        self.assertFalse(tuple(ws.GetConflictingGroups(g1)))
 
-  def test_plonk_into_place(self):
-    ws = Workspace()
-    ws.InsertElements((7, 8, 7, 8, 9))
+    def test_supergroups(self):
+        ws = Workspace()
+        ws.InsertElements(range(0, 10))
+        helper_create_and_insert_groups(ws, ((1, 2, 3), (4, 5, 6), (7, 8)))
+        self.assertEqual(1, len(tuple(ws.GetSuperGroups(ws.elements[1]))))
+        g1 = helper_create_group_given_spans_of_items(ws, (1, 3))
+        self.assertEqual(1, len(tuple(ws.GetSuperGroups(g1))))
+        helper_create_and_insert_groups(ws, (3, 4))
+        g2 = helper_create_group_given_spans_of_items(ws, (3, 4))
+        self.assertEqual(0, len(tuple(ws.GetSuperGroups(g2))))
+        self.assertEqual(2, len(tuple(ws.GetSuperGroups(ws.elements[3]))))
 
-    # Plonk an element... returns existing element.
-    elt = SAnchored(SElement(8), (), 3, 3)
-    self.assertEqual(ws.elements[3], ws._PlonkIntoPlace(elt))
+    def test_plonk_into_place(self):
+        ws = Workspace()
+        ws.InsertElements((7, 8, 7, 8, 9))
 
-    # Plonk a group, one item of which is an existing element, one novel. The plonked group
-    # has the existing element as a subgroup.
-    elt0 = SAnchored(SElement(7), (), 0, 0)
-    elt1 = SAnchored(SElement(8), (), 1, 1)
-    elt2 = SAnchored(SElement(7), (), 2, 2)
-    elt3 = SAnchored(SElement(8), (), 3, 3)
-    elt4 = SAnchored(SElement(9), (), 4, 4)
-    numeric_successor = NumericMapping(name="succ", category=Number())
-    numeric_sameness = NumericMapping(name="same", category=Number())
+        # Plonk an element... returns existing element.
+        elt = SAnchored(SElement(8), (), 3, 3)
+        self.assertEqual(ws.elements[3], ws._PlonkIntoPlace(elt))
 
-    successor_mapping_based_cat = MappingBasedCategory(mapping=numeric_successor)
+        # Plonk a group, one item of which is an existing element, one novel. The plonked group
+        # has the existing element as a subgroup.
+        elt0 = SAnchored(SElement(7), (), 0, 0)
+        elt1 = SAnchored(SElement(8), (), 1, 1)
+        elt2 = SAnchored(SElement(7), (), 2, 2)
+        elt3 = SAnchored(SElement(8), (), 3, 3)
+        elt4 = SAnchored(SElement(9), (), 4, 4)
+        numeric_successor = NumericMapping(name="succ", category=Number())
+        numeric_sameness = NumericMapping(name="same", category=Number())
 
-    next_ascending = StructuralMapping(
-        category=MappingBasedCategory(mapping=numeric_successor),
-        bindings_mapping=frozenset((('length', numeric_successor),
-                                    ('start', numeric_sameness))))
-    gp1 = SAnchored.Create((elt0, elt1), underlying_mapping_set={numeric_successor})
-    gp2 = SAnchored.Create((elt2, elt3, elt4), underlying_mapping_set={numeric_successor})
-    gp3 = SAnchored.Create((gp1, gp2), underlying_mapping_set={next_ascending})
+        successor_mapping_based_cat = MappingBasedCategory(
+            mapping=numeric_successor)
 
-    self.assertTrue(gp1.object.IsKnownAsInstanceOf(successor_mapping_based_cat))
+        next_ascending = StructuralMapping(
+            category=MappingBasedCategory(mapping=numeric_successor),
+            bindings_mapping=frozenset((('length', numeric_successor),
+                                        ('start', numeric_sameness))))
+        gp1 = SAnchored.Create(
+            (elt0, elt1), underlying_mapping_set={numeric_successor})
+        gp2 = SAnchored.Create(
+            (elt2, elt3, elt4), underlying_mapping_set={numeric_successor})
+        gp3 = SAnchored.Create(
+            (gp1, gp2), underlying_mapping_set={next_ascending})
 
-    plonked = ws._PlonkIntoPlace(gp3)
-    self.assertEqual(((7, 8), (7, 8, 9)), plonked.Structure())
-    existing_groups = list(ws.GetGroupsWithSpan(Exactly(0), Exactly(1)))
-    self.assertEqual(existing_groups[0], plonked.items[0])
-    self.assertTrue(plonked.items[0].object.IsKnownAsInstanceOf(successor_mapping_based_cat))
-    self.assertTrue(numeric_successor in plonked.items[0].object.underlying_mapping_set)
-    self.assertTrue(next_ascending in plonked.object.underlying_mapping_set)
+        self.assertTrue(gp1.object.IsKnownAsInstanceOf(
+            successor_mapping_based_cat))
 
+        plonked = ws._PlonkIntoPlace(gp3)
+        self.assertEqual(((7, 8), (7, 8, 9)), plonked.Structure())
+        existing_groups = list(ws.GetGroupsWithSpan(Exactly(0), Exactly(1)))
+        self.assertEqual(existing_groups[0], plonked.items[0])
+        self.assertTrue(plonked.items[0].object.IsKnownAsInstanceOf(
+            successor_mapping_based_cat))
+        self.assertTrue(numeric_successor in plonked.items[
+                        0].object.underlying_mapping_set)
+        self.assertTrue(
+            next_ascending in plonked.object.underlying_mapping_set)
 
-  def test_replacement(self):
-    new_group = SAnchored.Create((SAnchored(SElement(7), (), 7, 7),
-                                  SAnchored(SElement(8), (), 8, 8),
-                                  SAnchored(SElement(9), (), 9, 9)))
+    def test_replacement(self):
+        new_group = SAnchored.Create((SAnchored(SElement(7), (), 7, 7),
+                                      SAnchored(SElement(8), (), 8, 8),
+                                      SAnchored(SElement(9), (), 9, 9)))
 
-    ws = Workspace()
-    ws.InsertElements(range(0, 10))
-    helper_create_and_insert_groups(ws, ((1, 2, 3), (4, 5, 6), (7, 8)))
-    existing_group = list(ws.GetGroupsWithSpan(Exactly(7), Exactly(8)))[0]
-    # Cannot replace a group which is not the topmost.
-    self.assertRaises(CannotReplaceSubgroupException,
-                      ws.Replace, existing_group, new_group)
+        ws = Workspace()
+        ws.InsertElements(range(0, 10))
+        helper_create_and_insert_groups(ws, ((1, 2, 3), (4, 5, 6), (7, 8)))
+        existing_group = list(ws.GetGroupsWithSpan(Exactly(7), Exactly(8)))[0]
+        # Cannot replace a group which is not the topmost.
+        self.assertRaises(CannotReplaceSubgroupException,
+                          ws.Replace, existing_group, new_group)
 
-    ws = Workspace()
-    ws.InsertElements(range(0, 10))
-    helper_create_and_insert_groups(ws, (7, 8))
-    existing_group = list(ws.GetGroupsWithSpan(Exactly(7), Exactly(8)))[0]
-    ws.Replace(existing_group, new_group)
-    self.assertTrue(existing_group not in ws.groups)
-    self.assertEqual(1, len(list(ws.GetGroupsWithSpan(Exactly(7), Exactly(9)))))
+        ws = Workspace()
+        ws.InsertElements(range(0, 10))
+        helper_create_and_insert_groups(ws, (7, 8))
+        existing_group = list(ws.GetGroupsWithSpan(Exactly(7), Exactly(8)))[0]
+        ws.Replace(existing_group, new_group)
+        self.assertTrue(existing_group not in ws.groups)
+        self.assertEqual(
+            1, len(list(ws.GetGroupsWithSpan(Exactly(7), Exactly(9)))))
 
-    # So now (7, 8, 9) is a group. Let's add a group (5, 6) and try and extend it to 5:8
-    helper_create_and_insert_groups(ws, (5, 6))
-    existing_group = list(ws.GetGroupsWithSpan(Exactly(5), Exactly(6)))[0]
-    new_group = SAnchored.Create((SAnchored(SElement(5), (), 5, 5),
-                                  SAnchored(SElement(6), (), 6, 6),
-                                  SAnchored(SElement(7), (), 7, 7),
-                                  SAnchored(SElement(8), (), 8, 8)))
-    self.assertRaises(ConflictingGroupException,
-                      ws.Replace, existing_group, new_group)
-    # The original group still exists
-    self.assertTrue(existing_group in ws.groups)
-
+        # So now (7, 8, 9) is a group. Let's add a group (5, 6) and try and
+        # extend it to 5:8
+        helper_create_and_insert_groups(ws, (5, 6))
+        existing_group = list(ws.GetGroupsWithSpan(Exactly(5), Exactly(6)))[0]
+        new_group = SAnchored.Create((SAnchored(SElement(5), (), 5, 5),
+                                      SAnchored(SElement(6), (), 6, 6),
+                                      SAnchored(SElement(7), (), 7, 7),
+                                      SAnchored(SElement(8), (), 8, 8)))
+        self.assertRaises(ConflictingGroupException,
+                          ws.Replace, existing_group, new_group)
+        # The original group still exists
+        self.assertTrue(existing_group in ws.groups)

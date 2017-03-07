@@ -12,64 +12,67 @@
 # program.  If not, see <http://www.gnu.org/licenses/>
 """Mixin class to be added to anything that can be the focus in the stream."""
 
-from abc import ABCMeta, abstractmethod  # Metaclass confuses pylint: disable=W0611
+# Metaclass confuses pylint: disable=W0611
+from abc import ABCMeta, abstractmethod
+
+
 class FocusableMixin(metaclass=ABCMeta):
-  """A mixin for things that want to be part of the stream.
+    """A mixin for things that want to be part of the stream.
 
-   It is a pure interface --- all methods die horribly when called unless over-ridden.
-  """
-
-  def __init__(self):
-    pass
-
-  @abstractmethod
-  def GetFringe(self, controller):
-    """Returns the fringe of the item.
-
-    Args:
-      controller: controller for this subspace (or whole app if this is the top space).
-
-    Returns:
-      A dictionary keyed by fringe elements and with floats as values (indicating intensity
-      of the element within the fringe).
+     It is a pure interface --- all methods die horribly when called unless over-ridden.
     """
-    pass
 
-  @abstractmethod
-  def GetAffordances(self, controller):
-    """Returns a list of codelets that make sense for this type of object.
+    def __init__(self):
+        pass
 
-    Args:
-      controller: controller for this subspace (or whole app if this is the top space).
+    @abstractmethod
+    def GetFringe(self, controller):
+        """Returns the fringe of the item.
 
-    Returns:
-      A list of codelets for actions that may be taken on this focusable.
-    """
-    pass
+        Args:
+          controller: controller for this subspace (or whole app if this is the top space).
 
-  @abstractmethod
-  def GetSimilarityAffordances(self, focusable, other_fringe, my_fringe, controller):
-    """Potential actions to take in response to a fringe overlap.
+        Returns:
+          A dictionary keyed by fringe elements and with floats as values (indicating intensity
+          of the element within the fringe).
+        """
+        pass
 
-    When the fringe of a stored focus overlaps the fringe of a newly focused entity,
-    this function is called. Here, self is the older focus, and my_fringe is its fringe.
-    focusable is the new focusable, and other_fringe is its fringe.
+    @abstractmethod
+    def GetAffordances(self, controller):
+        """Returns a list of codelets that make sense for this type of object.
 
-    Args:
-      focusable: The most recent focus.
-      other_fringe: Fringe of 'focusable'.
-      my_fringe: Fringe of 'self', which is the older focusable.
-      controller: controller for this subspace (or whole app if this is the top space).
+        Args:
+          controller: controller for this subspace (or whole app if this is the top space).
 
-    Returns:
-      A list of codelets that follow-up on this potential similarity.
-    """
-    pass
+        Returns:
+          A list of codelets for actions that may be taken on this focusable.
+        """
+        pass
 
-  def OnFocus(self, controller):
-    """Any book-keeping or other sundry actions on focused-upon object may be done here.
+    @abstractmethod
+    def GetSimilarityAffordances(self, focusable, other_fringe, my_fringe, controller):
+        """Potential actions to take in response to a fringe overlap.
 
-    Args:
-      controller: controller for this subspace (or whole app if this is the top space).
-    """
-    pass
+        When the fringe of a stored focus overlaps the fringe of a newly focused entity,
+        this function is called. Here, self is the older focus, and my_fringe is its fringe.
+        focusable is the new focusable, and other_fringe is its fringe.
+
+        Args:
+          focusable: The most recent focus.
+          other_fringe: Fringe of 'focusable'.
+          my_fringe: Fringe of 'self', which is the older focusable.
+          controller: controller for this subspace (or whole app if this is the top space).
+
+        Returns:
+          A list of codelets that follow-up on this potential similarity.
+        """
+        pass
+
+    def OnFocus(self, controller):
+        """Any book-keeping or other sundry actions on focused-upon object may be done here.
+
+        Args:
+          controller: controller for this subspace (or whole app if this is the top space).
+        """
+        pass

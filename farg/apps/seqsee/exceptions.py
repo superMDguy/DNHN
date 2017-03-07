@@ -12,28 +12,33 @@
 # program.  If not, see <http://www.gnu.org/licenses/>
 """Seqsee-specific exceptions."""
 from farg.core.exceptions import FargException
+
+
 class SeqseeException(FargException):
-  """Base class of all Seqsee exceptions."""
-  pass
+    """Base class of all Seqsee exceptions."""
+    pass
+
 
 class ConflictingGroupException(SeqseeException):
-  """If an attempt is made to add a group to the workspace that conflicts some existing
-     group(s), this exception is raised.
-  """
-  def __init__(self, conflicting_groups):
-    #: The groups that conflict.
-    FargException.__init__(self)
-    self.conflicting_groups = conflicting_groups
+    """If an attempt is made to add a group to the workspace that conflicts some existing
+       group(s), this exception is raised.
+    """
 
-  def __str__(self):
-    return "ConflictingGroupException(conflicting_groups=%s)" % str(self.conflicting_groups)
+    def __init__(self, conflicting_groups):
+        #: The groups that conflict.
+        FargException.__init__(self)
+        self.conflicting_groups = conflicting_groups
+
+    def __str__(self):
+        return "ConflictingGroupException(conflicting_groups=%s)" % str(self.conflicting_groups)
 
 
 class CannotReplaceSubgroupException(SeqseeException):
-  """Attempt to replace a group that is a subgroup."""
-  def __init__(self, supergroups):
-    FargException.__init__(self)
-    self.supergroups = supergroups
+    """Attempt to replace a group that is a subgroup."""
 
-  def __str__(self):
-    return "CannotReplaceSubgroupException(supergroups=%s)" % str(self.supergroups)
+    def __init__(self, supergroups):
+        FargException.__init__(self)
+        self.supergroups = supergroups
+
+    def __str__(self):
+        return "CannotReplaceSubgroupException(supergroups=%s)" % str(self.supergroups)

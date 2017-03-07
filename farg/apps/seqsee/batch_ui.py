@@ -17,21 +17,28 @@ from farg.apps.seqsee.question import AreTheseTheNextTermsQuestion
 from farg.core.exceptions import SuccessfulCompletion
 from farg.core.ui.batch_ui import BatchUI
 import farg.flags as farg_flags
+
+
 def HasAsPrefix(longer_list, shorter_list):
-  return longer_list[:len(shorter_list)] == shorter_list
+    return longer_list[:len(shorter_list)] == shorter_list
+
 
 class SeqseeBatchUI(BatchUI):
-  def RegisterQuestionHandlers(self):
-    def HandleNextTermsQuestion(question, ui):
-      workspace = ui.controller.workspace
-      current_known_terms = list(x.object.magnitude for x in workspace.elements)
-      total_known_terms = farg_flags.FargFlags.sequence + farg_flags.FargFlags.unrevealed_terms
-      expected_total_terms = current_known_terms + list(question.terms)
-      if len(expected_total_terms) > len(total_known_terms):
-        if (HasAsPrefix(expected_total_terms, total_known_terms)):
-          raise SuccessfulCompletion(codelet_count=ui.controller.steps_taken)
-        else:
-          return False
-      else:
-        return HasAsPrefix(total_known_terms, expected_total_terms)
-    AreTheseTheNextTermsQuestion.Ask = HandleNextTermsQuestion
+
+    def RegisterQuestionHandlers(self):
+        def HandleNextTermsQuestion(question, ui):
+            workspace = ui.controller.workspace
+            current_known_terms = list(
+                x.object.magnitude for x in workspace.elements)
+            total_known_terms = farg_flags.FargFlags.sequence + \
+                farg_flags.FargFlags.unrevealed_terms
+            expected_total_terms = current_known_terms + list(question.terms)
+            if len(expected_total_terms) > len(total_known_terms):
+                if (HasAsPrefix(expected_total_terms, total_known_terms)):
+                    raise SuccessfulCompletion(
+                        codelet_count=ui.controller.steps_taken)
+                else:
+                    return False
+            else:
+                return HasAsPrefix(total_known_terms, expected_total_terms)
+        AreTheseTheNextTermsQuestion.Ask = HandleNextTermsQuestion

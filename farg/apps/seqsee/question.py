@@ -12,7 +12,11 @@
 # program.  If not, see <http://www.gnu.org/licenses/>
 
 from farg.core.question.question import BooleanQuestion
+
+
 class AreTheseTheNextTermsQuestion(BooleanQuestion):
-  def __init__(self, terms):
-    self.terms = terms
-    BooleanQuestion.__init__(self, 'Are these the next few terms: %s?' % terms)
+
+    def __init__(self, terms):
+        self.terms = terms
+        BooleanQuestion.__init__(
+            self, 'Are these the next few terms: %s?' % terms)

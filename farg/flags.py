@@ -5,9 +5,9 @@ import argparse
 
 class SplitOnSpacesAction(argparse.Action):
 
-  def __call__(self, parser, namespace, values, option_string=None):
-    print('%r %r %r' % (namespace, values, option_string))
-    setattr(namespace, self.dest, values.split(' '))
+    def __call__(self, parser, namespace, values, option_string=None):
+        print('%r %r %r' % (namespace, values, option_string))
+        setattr(namespace, self.dest, values.split(' '))
 
 
 # Will get over-ridden later, but kept here for tests.
@@ -56,6 +56,11 @@ core_parser.add_argument(
     default=20000,
     type=int,
     help='In batch and SxS mode, number of steps per run')
+core_parser.add_argument(
+    '--dimensions',
+    default=50,
+    type=int,
+    help='Number of dimensions in the workspace vector space.')
 
 core_parser.add_argument(
     '--stopping_condition',

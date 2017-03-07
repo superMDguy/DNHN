@@ -12,13 +12,16 @@
 # program.  If not, see <http://www.gnu.org/licenses/>
 
 from farg.core.read_input_spec import ReadInputSpec, SpecificationForOneRun
+
+
 class SeqseeReadInputSpec(ReadInputSpec):
-  def ReadLine(self, line):
-    if not '|' in line:
-      return
-    input, continuation = (x.split() for x in line.strip().split('|'))
-    arg_list = ['--sequence']
-    arg_list.extend(input)
-    arg_list.append('--unrevealed_terms')
-    arg_list.extend(continuation)
-    yield SpecificationForOneRun(' '.join(input), arg_list)
+
+    def ReadLine(self, line):
+        if not '|' in line:
+            return
+        input, continuation = (x.split() for x in line.strip().split('|'))
+        arg_list = ['--sequence']
+        arg_list.extend(input)
+        arg_list.append('--unrevealed_terms')
+        arg_list.extend(continuation)
+        yield SpecificationForOneRun(' '.join(input), arg_list)

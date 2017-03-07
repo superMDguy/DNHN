@@ -18,35 +18,42 @@ in either units.
 """
 from farg.core.ltm.storable import LTMStorableMixin
 from farg.core.meta import MemoizedConstructor
+
+
 class Distance(LTMStorableMixin):
-  def __init__(self, *, value, unit):
-    self.value = value
-    self.unit = unit
 
-  def UnitIsElements(self):
-    return self.unit == "Elements"
+    def __init__(self, *, value, unit):
+        self.value = value
+        self.unit = unit
 
-  def UnitIsGroups(self):
-    return self.unit == "Groups"
+    def UnitIsElements(self):
+        return self.unit == "Elements"
+
+    def UnitIsGroups(self):
+        return self.unit == "Groups"
+
 
 class DistanceInElements(Distance, metaclass=MemoizedConstructor):
-  def __init__(self, *, value, unit="Elements"):
-    assert value >= 0 and unit == "Elements"
-    Distance.__init__(self, value=value, unit="Elements")
 
-  def BriefLabel(self):
-    if self.value == 1:
-      return "Distance: 1 element"
-    else:
-      return "Distance: %d elements" % self.value
+    def __init__(self, *, value, unit="Elements"):
+        assert value >= 0 and unit == "Elements"
+        Distance.__init__(self, value=value, unit="Elements")
+
+    def BriefLabel(self):
+        if self.value == 1:
+            return "Distance: 1 element"
+        else:
+            return "Distance: %d elements" % self.value
+
 
 class DistanceInGroups(Distance, metaclass=MemoizedConstructor):
-  def __init__(self, *, value, unit="Groups"):
-    assert value >= 0 and unit == "Groups"
-    Distance.__init__(self, value=value, unit="Groups")
 
-  def BriefLabel(self):
-    if self.value == 1:
-      return "Distance: 1 group"
-    else:
-      return "Distance: %d groups" % self.value
+    def __init__(self, *, value, unit="Groups"):
+        assert value >= 0 and unit == "Groups"
+        Distance.__init__(self, value=value, unit="Groups")
+
+    def BriefLabel(self):
+        if self.value == 1:
+            return "Distance: 1 group"
+        else:
+            return "Distance: %d groups" % self.value

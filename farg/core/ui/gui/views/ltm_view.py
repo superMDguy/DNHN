@@ -16,47 +16,52 @@
 from tkinter import END, NW, Text, Toplevel
 
 from farg.core.ui.gui.views.list_based_view import ListBasedView
+
+
 def ShowNodeDetails(controller, node):
-  top = Toplevel()
-  tb = Text(top, height=50, width=50)
-  tb.pack()
-  tb.insert(END, '%s\n\n' % node.content.BriefLabel())
-  for edge in node.outgoing_edges:
-    tb.insert(END,
-              '{%s} -- %5.3f \t %s\n' % (', '.join(edge.edge_type_set),
-                                         edge.utility,
-                                         edge.to_node.content.BriefLabel()))
+    top = Toplevel()
+    tb = Text(top, height=50, width=50)
+    tb.pack()
+    tb.insert(END, '%s\n\n' % node.content.BriefLabel())
+    for edge in node.outgoing_edges:
+        tb.insert(END,
+                  '{%s} -- %5.3f \t %s\n' % (', '.join(edge.edge_type_set),
+                                             edge.utility,
+                                             edge.to_node.content.BriefLabel()))
+
 
 class LTMView(ListBasedView):
-  """View for displaying nodes in an ltm."""
+    """View for displaying nodes in an ltm."""
 
-  items_per_page = 10
+    items_per_page = 10
 
-  def GetAllItemsToDisplay(self, controller):
-    """A list of things to display.
+    def GetAllItemsToDisplay(self, controller):
+        """A list of things to display.
 
-    Args:
-      controller: Controller for the application.
+        Args:
+          controller: Controller for the application.
 
-    Returns:
-      A 3-tuple: Items, a top message, and a dictionary of extra information. The extra
-        information is the number of timesteps taken in the ltm.
-    """
-    ltm = controller.ltm
-    items_with_activations = []
-    epoch = controller.steps_taken
-    for node in ltm.nodes:
-      items_with_activations.append((node, node.GetActivation(epoch)))
-    items = sorted(items_with_activations, reverse=True, key=lambda x: x[1])
-    message = ''
-    return (items, message, dict(epoch=epoch))
+        Returns:
+          A 3-tuple: Items, a top message, and a dictionary of extra information. The extra
+            information is the number of timesteps taken in the ltm.
+        """
+        ltm = controller.ltm
+        items_with_activations = []
+        epoch = controller.steps_taken
+        for node in ltm.nodes:
+            items_with_activations.append((node, node.GetActivation(epoch)))
+        items = sorted(items_with_activations,
+                       reverse=True, key=lambda x: x[1])
+        message = ''
+        return (items, message, dict(epoch=epoch))
 
-  def DrawItem(self, widget_x, widget_y, item, extra_dict, controller):
-    """Given x, y within the current widget and an item, draws it."""
-    node, activation = item
-    x, y = self.CanvasCoordinates(widget_x, widget_y)
-    text_id = self.canvas.create_text(20 + x, y,
-                                      text='%1.3f [Ab: %05d] %s' % (activation, node.abundance,
-                                                                    node.content.BriefLabel()),
-                                      anchor=NW)
-    self.canvas.tag_bind(text_id, '<1>', lambda e: ShowNodeDetails(controller, node))
+    def DrawItem(self, widget_x, widget_y, item, extra_dict, controller):
+        """Given x, y within the current widget and an item, draws it."""
+        node, activation = item
+        x, y = self.CanvasCoordinates(widget_x, widget_y)
+        text_id = self.canvas.create_text(20 + x, y,
+                                          text='%1.3f [Ab: %05d] %s' % (activation, node.abundance,
+                                                                        node.content.BriefLabel()),
+                                          anchor=NW)
+        self.canvas.tag_bind(
+            text_id, '<1>', lambda e: ShowNodeDetails(controller, node))

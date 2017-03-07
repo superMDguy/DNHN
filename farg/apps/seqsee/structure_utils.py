@@ -11,8 +11,9 @@
 # You should have received a copy of the GNU General Public License along with this
 # program.  If not, see <http://www.gnu.org/licenses/>
 
+
 def StructureDepth(structure):
-  """Returns how deeply nested a structure is. 0 is no nesting, 1 is flat, etc."""
-  if isinstance(structure, int):
-    return 0
-  return 1 + max(StructureDepth(x) for x in structure)
+    """Returns how deeply nested a structure is. 0 is no nesting, 1 is flat, etc."""
+    if isinstance(structure, int):
+        return 0
+    return 1 + max(StructureDepth(x) for x in structure)

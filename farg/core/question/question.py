@@ -15,15 +15,15 @@
 
 
 class Question:
-  """Base of questions asked."""
+    """Base of questions asked."""
 
-  def __init__(self):
-    pass
+    def __init__(self):
+        pass
 
 
 class BooleanQuestion(Question):
-  """A question with a yes/no answer."""
+    """A question with a yes/no answer."""
 
-  def __init__(self, question_string):
-    Question.__init__(self)
-    self.question_string = question_string
+    def __init__(self, question_string):
+        Question.__init__(self)
+        self.question_string = question_string

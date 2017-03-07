@@ -35,46 +35,47 @@ seqsee_parser.add_argument("--use_group_distances", default=False, type=bool,
 
 
 class UnprocessedFlags(object):
-  pass
+    pass
 
 seqsee_parser.parse_args(args=None, namespace=UnprocessedFlags)
 
-class SeqseeMain(Main):
-  """
-  The entry point into the Seqsee app. This controls all the modes of running Seqsee --- GUI,
-  batch, and a side-by-side comparison with different flags.
-  """
-  #: The lowercase name of the program, used for such things as directory for ltm files
-  #: and stats for batch runs.
-  application_name = 'seqsee'
-  #: The GUI class when running in GUI mode. The UI is responsible for interfacing between the
-  #: user and the controller.
-  gui_class = SeqseeGUI
-  #: When running in batch mode, this class provides the UI. It also simulates the user: if
-  #: the controller has a question that would have been fielded by the real user in GUI (such
-  #: as "Are these the next terms?"), this UI tries to answer it based on future terms that
-  #: have been provided to it.
-  batch_ui_class = SeqseeBatchUI
-  #: This class handles the central loop of the program. Its sole job is to mindlessly run
-  #:  codelets which do the real work. In that sense, this is a "dumb" controller.
-  controller_class = SeqseeController
-  #: Lists stopping conditions that may be provided on the command-line in batch or SxS modes
-  #: to get a sense of how long a program runs until this condition is met.
-  #: Examples of conditions: A group spanning all terms is formed; a relation is formed
-  #: with a certain type, and so forth.
-  stopping_conditions_class = SeqseeStoppingConditions
-  #: In batch/sxs modes, the various input sequences are read from a file. This class
-  #: converts the file to input specifications.
-  input_spec_reader_class = SeqseeReadInputSpec
 
-  def ProcessCustomFlags(self):
+class SeqseeMain(Main):
     """
-    Process Seqsee specific flags.
+    The entry point into the Seqsee app. This controls all the modes of running Seqsee --- GUI,
+    batch, and a side-by-side comparison with different flags.
     """
-    if not(self.flags.sequence) and (self.flags.run_mode == 'gui' or self.flags.run_mode == 'single'):
-      print('No terms specified for the input sequence. Use --sequence ..., '
-            'where the ... represents a space separated list of input integers.')
-      sys.exit(1)
+    #: The lowercase name of the program, used for such things as directory for ltm files
+    #: and stats for batch runs.
+    application_name = 'seqsee'
+    #: The GUI class when running in GUI mode. The UI is responsible for interfacing between the
+    #: user and the controller.
+    gui_class = SeqseeGUI
+    #: When running in batch mode, this class provides the UI. It also simulates the user: if
+    #: the controller has a question that would have been fielded by the real user in GUI (such
+    #: as "Are these the next terms?"), this UI tries to answer it based on future terms that
+    #: have been provided to it.
+    batch_ui_class = SeqseeBatchUI
+    #: This class handles the central loop of the program. Its sole job is to mindlessly run
+    #:  codelets which do the real work. In that sense, this is a "dumb" controller.
+    controller_class = SeqseeController
+    #: Lists stopping conditions that may be provided on the command-line in batch or SxS modes
+    #: to get a sense of how long a program runs until this condition is met.
+    #: Examples of conditions: A group spanning all terms is formed; a relation is formed
+    #: with a certain type, and so forth.
+    stopping_conditions_class = SeqseeStoppingConditions
+    #: In batch/sxs modes, the various input sequences are read from a file. This class
+    #: converts the file to input specifications.
+    input_spec_reader_class = SeqseeReadInputSpec
+
+    def ProcessCustomFlags(self):
+        """
+        Process Seqsee specific flags.
+        """
+        if not(self.flags.sequence) and (self.flags.run_mode == 'gui' or self.flags.run_mode == 'single'):
+            print('No terms specified for the input sequence. Use --sequence ..., '
+                  'where the ... represents a space separated list of input integers.')
+            sys.exit(1)
 
 if __name__ == '__main__':
-  SeqseeMain(UnprocessedFlags).Run()
+    SeqseeMain(UnprocessedFlags).Run()

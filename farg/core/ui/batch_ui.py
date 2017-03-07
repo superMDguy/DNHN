@@ -13,25 +13,28 @@
 
 from farg.core.ltm.manager import LTMManager
 import farg.flags as farg_flags
+
+
 class BatchUI:
-  def __init__(self, *, controller_class, stopping_condition_fn=None):
-    self.pause_stepping = False
-    self.quitting = False
-    self.stepping_thread = None
 
-    self.controller = controller_class(ui=self, controller_depth=0,
-                                       stopping_condition=stopping_condition_fn)
-    self.RegisterQuestionHandlers()
+    def __init__(self, *, controller_class, stopping_condition_fn=None):
+        self.pause_stepping = False
+        self.quitting = False
+        self.stepping_thread = None
 
-  def AskQuestion(self, question):
-    return question.Ask(self)
+        self.controller = controller_class(ui=self, controller_depth=0,
+                                           stopping_condition=stopping_condition_fn)
+        self.RegisterQuestionHandlers()
 
-  def RegisterQuestionHandlers(self):
-    pass
+    def AskQuestion(self, question):
+        return question.Ask(self)
 
-  def Run(self):
-    self.controller.RunUptoNSteps(farg_flags.FargFlags.max_steps)
-    LTMManager.SaveAllOpenLTMS()
+    def RegisterQuestionHandlers(self):
+        pass
 
-  def DisplayMessage(self, message):
-    pass
+    def Run(self):
+        self.controller.RunUptoNSteps(farg_flags.FargFlags.max_steps)
+        LTMManager.SaveAllOpenLTMS()
+
+    def DisplayMessage(self, message):
+        pass
