@@ -89,7 +89,7 @@ class SAnchored(LTMStorableMixin, FocusableMixin):
 
     def GetLTMStorableContent(self):
         structure = self.Structure()
-        return LTMStorableSObject(structure=structure)
+        return LTMStorableSObject(structure=structure, vector=self.object.vector)
 
     def GetStorable(self):
         structure = self.object.Structure()

@@ -41,7 +41,6 @@ class PSStream(object):
                 prior_overlapping_foci))
             History.Note("In FocusOn: Prior overlapping foci seen")
 
-<<<<<<< HEAD
         if actions:
             selected_actions = ChooseAboutN(
                 2, [(x, x.urgency) for x in actions])
@@ -54,18 +53,6 @@ class PSStream(object):
                     action,
                     msg="While focusing on %s" % focusable.BriefLabel(),
                     parents=())
-=======
-    if actions:
-      selected_actions = ChooseAboutN(2, [(x, x.urgency) for x in actions])
-      History.Note("In FocusOn: Total of suggested actions", times=len(actions))
-      History.Note(
-          "In FocusOn: Total of selected actions", times=len(selected_actions))
-      for action in selected_actions:
-        controller.coderack.AddCodelet(
-            action,
-            msg="While focusing on %s" % focusable.BriefLabel(),
-            parents=(focusable, ))
->>>>>>> 9742d7a23d3789e8a9946b2c28bae5f56633675d
 
     def PriorFociWithSimilarFringe(self,
                                    *,

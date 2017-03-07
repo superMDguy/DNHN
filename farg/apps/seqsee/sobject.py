@@ -30,16 +30,17 @@ import numpy as np
 
 from farg.core.categorization.categorizable import CategorizableMixin
 from farg.core.exceptions import FargError
+from farg.core.ltm.node import VECTOR_DIM
 from farg.core.ltm.storable import LTMStorableMixin, LTMNodeContent
 from farg.core.util import Squash
-import farg.flags as farg_flags
 logger = logging.getLogger(__name__)
 
 
 class LTMStorableSObject(LTMNodeContent):
 
-    def __init__(self, *, structure):
+    def __init__(self, *, structure, vector):
         self.structure = structure
+        self.vector = vector
 
     def BriefLabel(self):
         return 'Obj:%s' % str(self.structure)
@@ -89,7 +90,7 @@ class SObject(CategorizableMixin, LTMStorableMixin):
         # TODO(#24 --- Dec 28, 2011): Document (in LTM?) what GetStorable
         # means.
         structure = self.Structure()
-        return LTMStorableSObject(structure=structure)
+        return LTMStorableSObject(structure=structure, vector=self.vector)
 
     def Structure(self):  # pylint: disable=R0201
         """Should be overridden by subclasses to return an int or tuple representing the
@@ -127,7 +128,7 @@ class SGroup(SObject):
         if not items:
             items = []
         self.items = items
-        self.vector = np.array([item.vector for item in self.items])
+        self.vector = np.mean([item.vector for item in self.items], axis=0)
 
     def DeepCopy(self):
         """Makes a copy of the group."""
@@ -197,7 +198,7 @@ class SElement(SObject):
         self.underlying_mapping_set = None
         from farg.apps.seqsee.categories import Number
         self.DescribeAs(Number())
-        self.vector = np.random.uniform(-1, 1, farg_falgs.FargFlags.dimensions)
+        self.vector = np.random.uniform(-1, 1, VECTOR_DIM)
 
     def BriefLabel(self):
         return "SElement(%d)" % self.magnitude
