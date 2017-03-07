@@ -16,6 +16,8 @@ import logging
 import math
 kLogger = logging.getLogger("LTM_activations")
 
+VECTOR_DIM = 12
+
 #: Maps raw activation (an integer) to real activation.
 #: The values, in steps of 10, are as follows:
 #: ['0.003', '0.018', '0.043', '0.093', # For 0, 10, 20, 30
@@ -81,7 +83,7 @@ class LTMNode(object):
 
         """
         self.content = content
-        self.outgoing_edges = []
+        # self.outgoing_edges = [] EDGES ARE NOW DEPRECATED
         #: An easy-to-update measure of activation. The real activation is a continuous function
         #: of this. Starts out at (and never falls below) 0.
         self._raw_activation = 0
@@ -205,14 +207,17 @@ class LTMNode(object):
         return _RAW_ACTIVATION_TO_REAL_ACTIVATION[int(self.GetRawActivation(current_time))]
 
     def GetOutgoingEdges(self):
-        """Get outgoing edges from the node."""
-        return self.outgoing_edges
+        pass
+        # """Get outgoing edges from the node."""
+        # return self.outgoing_edges
 
     def GetOutgoingEdgesOfType(self, edge_type):
-        """Get outgoing edges of particular type."""
-        return (edge for edge in self.outgoing_edges if edge_type in edge.edge_type_set)
+        pass
+        # """Get outgoing edges of particular type."""
+        # return (edge for edge in self.outgoing_edges if edge_type in edge.edge_type_set)
 
     def GetOutgoingEdgesOfTypeIsa(self):
-        """Get outgoing edges of type 'isa'."""
-        from farg.core.ltm.edge import LTMEdge
-        return self.GetOutgoingEdgesOfType(LTMEdge.LTM_EDGE_TYPE_ISA)
+        pass
+        # """Get outgoing edges of type 'isa'."""
+        # from farg.core.ltm.edge import LTMEdge
+        # return self.GetOutgoingEdgesOfType(LTMEdge.LTM_EDGE_TYPE_ISA)

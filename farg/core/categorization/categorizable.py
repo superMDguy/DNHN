@@ -67,5 +67,5 @@ class CategorizableMixin(object):
         """Copy categories in 'other' to 'self'."""
         my_categories = self.categories
         for cat, binding in other.categories.items():
-            if not cat in my_categories:
+            if cat not in my_categories:
                 my_categories[cat] = binding

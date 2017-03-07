@@ -56,11 +56,6 @@ core_parser.add_argument(
     default=20000,
     type=int,
     help='In batch and SxS mode, number of steps per run')
-core_parser.add_argument(
-    '--dimensions',
-    default=50,
-    type=int,
-    help='Number of dimensions in the workspace vector space.')
 
 core_parser.add_argument(
     '--stopping_condition',

@@ -13,10 +13,13 @@
 
 import logging
 import sys
+import os.path
+
+from annoy import AnnoyIndex
 
 from farg.core.exceptions import FargError
 from farg.core.ltm.edge import LTMEdge
-from farg.core.ltm.node import LTMNode, Unmangle
+from farg.core.ltm.node import LTMNode, Unmangle, VECTOR_DIM
 import pickle as pickle
 kLogger = logging.getLogger("LTM_topology")
 
@@ -65,6 +68,19 @@ class LTMGraph(object):
     def __init__(self, *, filename=None, master_graph=None, empty_ok_for_test=False):
         self.nodes = []
         self._content_to_node = {}
+        self.annoyIndex = AnnoyIndex(VECTOR_DIM, metric='angular')
+
+        # for i in range(1000):
+        #     v = [random.gauss(0, 1) for z in range(f)]
+        #     t.add_item(i, v)
+
+        # t.build(10)  # 10 trees
+        # t.save('ltm.ann')
+
+        # u = AnnoyIndex(f)
+        # u.load('ltm.ann')  # super fast, will just mmap the file
+        # # will find the 1000 nearest neighbors
+        # print(u.get_nns_by_item(0, 1000))
 
         if filename:
             assert(not master_graph)
@@ -98,6 +114,10 @@ class LTMGraph(object):
             return
         assert(not self.is_working_copy)
 
+        annFile = os.path.join(os.path.abspath(
+            os.path.join(self.filename, os.pardir)), 'ltmIndex.ann')
+
+        t.build(15)  # 15 trees
         with open(self.filename, "wb") as ltm_file:
             pickler = pickle.Pickler(ltm_file, 2)
             for node in self.nodes:
@@ -111,7 +131,6 @@ class LTMGraph(object):
                 pickler.dump(node)
                 Unmangle(node.content.__dict__)
 
-    # TODO: rename to GetNode(self, *, content)
     def GetNode(self, *, content):
         """Returns node for content; creates one if it does not exist."""
         storable_content = content.GetLTMStorableContent()
@@ -124,9 +143,6 @@ class LTMGraph(object):
         # Also ensure presence of any dependent nodes.
         for dependent_content in storable_content.LTMDependentContent():
             self.GetNode(content=dependent_content)
-            # Add an edge indicating dependence.
-            self.AddEdge(content, dependent_content, edge_type_set={
-                         LTMEdge.LTM_EDGE_TYPE_DEP_ON})
         return new_node
 
     def UploadToMaster(self, *, threshold=0.05):
@@ -141,11 +157,11 @@ class LTMGraph(object):
                 # print('Keeping: %5.3f %s' % (n.GetActivation(0), n.content.BriefLabel()))
                 mg._IncrementAbundance(content=n.content)
         for n in self.nodes:
-            if not n in kept_nodes:
+            if n not in kept_nodes:
                 continue
             for e in n.GetOutgoingEdges():
                 target = e.to_node
-                if not target in kept_nodes:
+                if target not in kept_nodes:
                     continue
                 mg.StrengthenEdge(n.content, target.content,
                                   edge_type_set=e.edge_type_set)
@@ -175,13 +191,17 @@ class LTMGraph(object):
                 except ValueError:
                     # Hit in Py3 for empty input file...
                     break
+        # annFile = os.path.join(os.path.abspath(
+        #     os.path.join(self.filename, os.pardir)), 'ltmIndex.ann')
+        # self.annoyIndex.load(annFile)
 
     def _AddNode(self, node):
         """Adds node to graph."""
         assert(isinstance(node, LTMNode))
-        if not node.content in self._content_to_node:
+        if node.content not in self._content_to_node:
             self._content_to_node[node.content] = node
             self.nodes.append(node)
+            self.annoyIndex.add_item(len(self.nodes), node.content.vector)
 
     def _Mangle(self, content_dict):
         """Replaces references to node contents with the nodes themselves."""
@@ -212,26 +232,37 @@ class LTMGraph(object):
                 out.append(k)
         return tuple(out)
 
+    def KNearest(self, vector, k=15):
+        nearestVectors = self.annoyIndex.get_nns_by_item(vector, k)
+        nearestNodes = []
+        for content, node in self._content_to_node:
+            if content.vector in nearestVectors:
+                nearestNodes.append(node)
+        return nearestNodes
+
     def AddEdge(self, from_content, to_content, *, utility=1, edge_type_set=set()):
-        node = self.GetNode(content=from_content.GetLTMStorableContent())
-        to_node = self.GetNode(content=to_content.GetLTMStorableContent())
-        for edge in node.outgoing_edges:
-            if edge.to_node == to_node:
-                edge.edge_type_set.update(edge_type_set)
-                # Already exists.
-                return
-        node.outgoing_edges.append(
-            LTMEdge(to_node, edge_type_set=edge_type_set.copy(), utility=utility))
+        pass
+        # node = self.GetNode(content=from_content.GetLTMStorableContent())
+        # to_node = self.GetNode(content=to_content.GetLTMStorableContent())
+        # for edge in node.outgoing_edges:
+        #     if edge.to_node == to_node:
+        #         edge.edge_type_set.update(edge_type_set)
+        #         # Already exists.
+        #         return
+        # node.outgoing_edges.append(
+        # LTMEdge(to_node, edge_type_set=edge_type_set.copy(),
+        # utility=utility))
 
     def StrengthenEdge(self, from_content, to_content, *,
                        edge_type_set=set()):
-        node = self.GetNode(content=from_content.GetLTMStorableContent())
-        to_node = self.GetNode(content=to_content.GetLTMStorableContent())
-        for edge in node.outgoing_edges:
-            if edge.to_node == to_node:
-                edge.utility += 1
-                if edge_type_set:
-                    edge.edge_type_set.update(edge_type_set)
-                return
-        node.outgoing_edges.append(
-            LTMEdge(to_node, edge_type_set=edge_type_set.copy(), utility=1))
+        pass
+        # node = self.GetNode(content=from_content.GetLTMStorableContent())
+        # to_node = self.GetNode(content=to_content.GetLTMStorableContent())
+        # for edge in node.outgoing_edges:
+        #     if edge.to_node == to_node:
+        #         edge.utility += 1
+        #         if edge_type_set:
+        #             edge.edge_type_set.update(edge_type_set)
+        #         return
+        # node.outgoing_edges.append(
+        #     LTMEdge(to_node, edge_type_set=edge_type_set.copy(), utility=1))

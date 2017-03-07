@@ -55,4 +55,5 @@ class Category(LTMNodeContent):
           If it is not an instance, None is returned. Otherwise, a
           :py:class:`~farg.core.categorization.binding.Binding` object is returned.
         """
+        print(entity)
         pass
