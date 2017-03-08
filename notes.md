@@ -1,4 +1,4 @@
-# Notes on Deep Neural Hofstadter Networks
+# Notes on DNHN
 
 ## Guiding Principles
 * Everything must be simple and generalized.  We're solving the problem of general intelligence here, so something that works well in one specific domain isn't necessarily good enough.
