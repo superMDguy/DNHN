@@ -55,6 +55,7 @@ class RunForNSteps(threading.Thread):
 
 
 class GUI:
+<<<<<<< HEAD
     """Base-class of GUI for an application.
 
     Provides a :py:mod:`tkinter` based interface to display various components such as the workspace,
@@ -65,6 +66,113 @@ class GUI:
     The central part of the window---everything except the row of buttons at the top---is controlled by
     an instance of the class :py:class:`~farg.core.ui.gui.central_pane.CentralPane` (see which for
     further details).The top-left corner of the window allows switching between different views.
+=======
+  """Base-class of GUI for an application.
+
+  Provides a :py:mod:`tkinter` based interface to display various components such as the workspace,
+  and for interacting with the user (such as asking questions).
+
+  **Supported Views**
+
+  The central part of the window---everything except the row of buttons at the top---is controlled by
+  an instance of the class :py:class:`~farg.core.ui.gui.central_pane.CentralPane` (see which for
+  further details).The top-left corner of the window allows switching between different views.
+
+  **Key Bindings**
+
+  The UI allows running the app at various speeds---full steam ahead, step-by-step, or with long
+  strides. These keyboard bindings are provided:
+
+  * 'q' for Quit
+  * 'c' for Continue (full-steam ahead!)
+  * 'p' for Pause while running
+  * 's' for Step (run one codelet)
+  * 'l' for taking a 10-codelet stride
+  * 'k' for taking a 100-codelet stride.
+  """
+
+  #: Size and location of the window.
+  geometry = '1280x980-0+0'  # Not a const. pylint: disable=C6409
+
+  #: Class handling the central part of the display.
+  central_pane_class = CentralPane  # Not a const. pylint: disable=C6409
+
+  def __init__(self, *, controller_class, stopping_condition_fn=None):
+    self.run_state_lock = threading.Lock()
+    self.pause_stepping = False
+    self.quitting = False
+    self.quitting_called_from_thread = False
+    self.stepping_thread = None
+
+    #: Button pane.
+    self.buttons_pane = None  # Set up later.
+    #: Central pane (a canvas).
+    self.central_pane = None  # Set up later.
+    #: A Tk variable tracking codelet count.
+    self.codelet_count_var = None  # Set up later.
+
+    self.controller = controller_class(ui=self,
+                                       controller_depth=0,
+                                       stopping_condition=stopping_condition_fn)
+    self.mw = mw = Tk()
+    # mw.geometry(self.geometry)
+    
+    self.mw.bind('<KeyPress-q>', lambda e: self.Quit())
+    self.mw.bind('<KeyPress-s>', lambda e: self.StepsInAnotherThread(1))
+    self.mw.bind('<KeyPress-l>', lambda e: self.StepsInAnotherThread(10))
+    self.mw.bind('<KeyPress-k>', lambda e: self.StepsInAnotherThread(100))
+    self.mw.bind('<KeyPress-c>', lambda e: self.StartThreaded())
+    self.mw.bind('<KeyPress-p>', lambda e: self.Pause())
+
+    self.items_to_refresh = []
+    self.SetupWindows()
+    self.RegisterQuestionHandlers()
+
+  def UpdateDisplay(self):
+    """Refresh the display. Erases everything and draws it again."""
+    if self.quitting_called_from_thread:
+      self.Quit()
+    for item in self.items_to_refresh:
+      try:
+        item.ReDraw()
+      except RuntimeError as error:
+        # This may occur because the object being updated may have changed. Log a warning
+        # and continue.
+        logging.warn('Runtime error while updating: %s', error)
+    self.codelet_count_var.set('%d' % self.controller.steps_taken)
+
+  def SetupWindows(self):
+    """Sets up frames in the GUI."""
+    self.buttons_pane = Frame(self.mw)
+    self.PopulateButtonPane(self.buttons_pane)
+    self.buttons_pane.grid(row=0, column=0, columnspan=2)
+
+    self.PopulateCentralPane()
+
+  def StepsInAnotherThread(self, num_steps):
+    with self.run_state_lock:
+      if self.quitting:
+        return
+      if self.stepping_thread:
+        if self.stepping_thread.is_alive():
+          return
+        else:
+          self.stepping_thread = None
+      self.stepping_thread = RunForNSteps(controller=self.controller, num_steps=num_steps,
+                                          gui=self)
+      self.pause_stepping = False
+      self.stepping_thread.start()
+
+  def StartThreaded(self):
+    self.StepsInAnotherThread(10000)
+
+  def Pause(self):
+    with self.run_state_lock:
+      self.pause_stepping = True
+      if self.stepping_thread:
+        self.stepping_thread.join()
+        self.stepping_thread = None
+>>>>>>> 48c37cd202d37fa42e4052590dbd2f9f6a6ec49e
 
     **Key Bindings**
 
@@ -78,6 +186,7 @@ class GUI:
     * 'l' for taking a 10-codelet stride
     * 'k' for taking a 100-codelet stride.
     """
+<<<<<<< HEAD
 
     #: Size and location of the window.
     geometry = '1280x980-0+0'  # Not a const. pylint: disable=C6409
@@ -213,3 +322,32 @@ class GUI:
 
     def DisplayMessage(self, message):  # Needs to be a method. pylint: disable=R0201
         showinfo('', message)
+=======
+    height = farg_flags.FargFlags.gui_canvas_height
+    width = farg_flags.FargFlags.gui_canvas_width
+    canvas = self.central_pane_class(self.mw, self.controller,
+                                     height=int(height), width=int(width),
+                                     background='#EEFFFF')
+    canvas.grid(row=1, column=0)
+    self.central_pane = canvas
+    self.items_to_refresh.append(canvas)
+    canvas.ReDraw()
+
+  def PopulateInteractionPane(self):
+    """Sets up the interaction pane at the bottom."""
+    pass
+
+  def AskQuestion(self, question):
+    """Asks the question (by delegating to the Ask method of the question)."""
+    return question.Ask(self)
+
+  def RegisterQuestionHandlers(self):  # Needs to be a method. pylint: disable=R0201
+    """Registers how to ask a given type of question."""
+
+    def BooleanQuestionHandler(question, ui):  # pylint: disable=W0613
+      return askyesno('', question.question_string)
+    BooleanQuestion.Ask = BooleanQuestionHandler
+
+  def DisplayMessage(self, message):  # Needs to be a method. pylint: disable=R0201
+    showinfo('', message)
+>>>>>>> 48c37cd202d37fa42e4052590dbd2f9f6a6ec49e
